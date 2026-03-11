@@ -1,0 +1,38 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="repeat"></i> ยืมทรัพย์สิน</h2>
+    <div class="breadcrumb">หน้าหลัก / ยืม-คืน / ยืม</div>
+  </div>
+  <a href="/borrows" class="btn btn-outline"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> กลับ</a>
+</div>
+<div class="card">
+  <div class="card-body">
+    <form action="/borrows/create" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-group">
+        <label class="form-label" for="asset_id">เลือกทรัพย์สิน *</label>
+        <select class="form-control" id="asset_id" name="asset_id" required>
+          <option value="">-- เลือกทรัพย์สิน --</option>
+          <% assets.forEach(a => { %>
+            <option value="<%= a.id %>"><%= a.name %> (คงเหลือ: <%= a.quantity %> <%= a.unit %>)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="quantity">จำนวน *</label>
+          <input type="number" class="form-control" id="quantity" name="quantity" required min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="expected_return_date">กำหนดวันคืน</label>
+          <input type="date" class="form-control" id="expected_return_date" name="expected_return_date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="purpose">วัตถุประสงค์</label>
+        <textarea class="form-control" id="purpose" name="purpose" placeholder="ระบุวัตถุประสงค์ในการยืม"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary"><i data-lucide="repeat"></i> ยืมทรัพย์สิน</button>
+    </form>
+  </div>
+</div>

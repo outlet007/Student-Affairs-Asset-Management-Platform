@@ -1,0 +1,82 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="pencil" style="width:14px;height:14px"></i> แก้ไขทรัพย์สิน</h2>
+    <div class="breadcrumb">หน้าหลัก / ทรัพย์สิน / แก้ไข</div>
+  </div>
+  <a href="/assets" class="btn btn-outline"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> กลับ</a>
+</div>
+<div class="card">
+  <div class="card-body">
+    <form action="/assets/edit/<%= asset.id %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="asset_code">รหัสทรัพย์สิน *</label>
+          <input type="text" class="form-control" id="asset_code" name="asset_code" value="<%= asset.asset_code %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="name">ชื่อทรัพย์สิน *</label>
+          <input type="text" class="form-control" id="name" name="name" value="<%= asset.name %>" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">คำอธิบาย</label>
+        <textarea class="form-control" id="description" name="description"><%= asset.description || '' %></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="category_id">หมวดหมู่</label>
+          <select class="form-control" id="category_id" name="category_id">
+            <option value="">-- ไม่ระบุ --</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat.id %>" <%= asset.category_id == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="type">ประเภท *</label>
+          <select class="form-control" id="type" name="type" required>
+            <option value="consumable" <%= asset.type === 'consumable' ? 'selected' : '' %>>ใช้แล้วหมดไป</option>
+            <option value="borrowable" <%= asset.type === 'borrowable' ? 'selected' : '' %>>ยืม-คืนได้</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="quantity">จำนวน *</label>
+          <input type="number" class="form-control" id="quantity" name="quantity" value="<%= asset.quantity %>" required min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="unit">หน่วยนับ *</label>
+          <input type="text" class="form-control" id="unit" name="unit" value="<%= asset.unit %>" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="price_per_unit">ราคาต่อหน่วย (฿)</label>
+          <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" value="<%= asset.price_per_unit || 0 %>" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="min_quantity">จำนวนขั้นต่ำ</label>
+          <input type="number" class="form-control" id="min_quantity" name="min_quantity" value="<%= asset.min_quantity || 0 %>" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="location">สถานที่จัดเก็บ</label>
+          <input type="text" class="form-control" id="location" name="location" value="<%= asset.location || '' %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="status">สถานะ</label>
+          <select class="form-control" id="status" name="status">
+            <option value="active" <%= asset.status === 'active' ? 'selected' : '' %>>ใช้งานได้</option>
+            <option value="damaged" <%= asset.status === 'damaged' ? 'selected' : '' %>>ชำรุด</option>
+            <option value="repairing" <%= asset.status === 'repairing' ? 'selected' : '' %>>ซ่อมแซม</option>
+            <option value="disposed" <%= asset.status === 'disposed' ? 'selected' : '' %>>จำหน่ายแล้ว</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
