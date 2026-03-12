@@ -8,7 +8,8 @@ const { paginate, buildPaginationQuery } = require('../utils/paginationHelper');
 // GET /withdrawals
 router.get('/', isAuthenticated, async (req, res) => {
   try {
-    const { status, page } = req.query;
+    const { status, page, limit } = req.query;
+    const perPage = [10, 20, 30].includes(parseInt(limit)) ? parseInt(limit) : 10;
     const where = {};
     if (status) where.status = status;
 
@@ -20,7 +21,7 @@ router.get('/', isAuthenticated, async (req, res) => {
         { model: User, as: 'approver' }
       ],
       order: [['created_at', 'DESC']]
-    }, page, 10);
+    }, page, perPage);
 
     res.render('withdrawals/index', {
       title: 'การเบิกใช้ทรัพย์สิน',

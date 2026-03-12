@@ -57,7 +57,6 @@ router.get('/template', isAuthenticated, isAdmin, async (req, res) => {
 
         // --- Sheet 1: Data Template ---
         const templateHeaders = [
-            'รหัสทรัพย์สิน (asset_code)',
             'ชื่อทรัพย์สิน (name)',
             'รายละเอียด (description)',
             'หมวดหมู่ (category)',
@@ -71,7 +70,6 @@ router.get('/template', isAuthenticated, isAdmin, async (req, res) => {
 
         // Example row
         const exampleRow = [
-            '',
             'ปากกาลูกลื่น',
             'ปากกาลูกลื่นสีน้ำเงิน',
             categoryNames[0] || 'เครื่องเขียน',
@@ -88,7 +86,7 @@ router.get('/template', isAuthenticated, isAdmin, async (req, res) => {
 
         // Set column widths
         ws['!cols'] = [
-            { wch: 28 }, { wch: 25 }, { wch: 30 }, { wch: 20 },
+            { wch: 25 }, { wch: 30 }, { wch: 20 },
             { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
             { wch: 25 }, { wch: 18 }
         ];
@@ -100,7 +98,7 @@ router.get('/template', isAuthenticated, isAdmin, async (req, res) => {
             ['คู่มือการกรอกข้อมูล'],
             [],
             ['คอลัมน์', 'คำอธิบาย', 'จำเป็น', 'ตัวอย่าง'],
-            ['รหัสทรัพย์สิน (asset_code)', 'เว้นว่างได้ ระบบจะสร้างรหัสอัตโนมัติจากหมวดหมู่', 'ไม่', 'ABC-0001'],
+
             ['ชื่อทรัพย์สิน (name)', 'ชื่อของทรัพย์สินหรือวัสดุ', 'ใช่', 'ปากกาลูกลื่น'],
             ['รายละเอียด (description)', 'คำอธิบายเพิ่มเติม', 'ไม่', 'ปากกาลูกลื่นสีน้ำเงิน'],
             ['หมวดหมู่ (category)', 'ชื่อหมวดหมู่ที่มีในระบบ (ดู Sheet "หมวดหมู่ในระบบ")', 'ใช่', 'เครื่องเขียน'],
@@ -205,7 +203,7 @@ router.post('/upload', isAuthenticated, isAdmin, (req, res, next) => {
                 const pricePerUnit = parseFloat(row['ราคาต่อหน่วย (price_per_unit)'] || row['price_per_unit'] || 0);
                 const location = String(row['สถานที่เก็บ (location)'] || row['location'] || '').trim();
                 const minQuantity = parseInt(row['จำนวนขั้นต่ำ (min_quantity)'] || row['min_quantity'] || 0);
-                let assetCode = String(row['รหัสทรัพย์สิน (asset_code)'] || row['asset_code'] || '').trim();
+                let assetCode = '';
 
                 // Validate required fields
                 const errors = [];

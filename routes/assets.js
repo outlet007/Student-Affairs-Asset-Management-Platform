@@ -8,7 +8,8 @@ const { paginate, buildPaginationQuery } = require('../utils/paginationHelper');
 // GET /assets
 router.get('/', isAuthenticated, async (req, res) => {
   try {
-    const { type, search, category_id, page } = req.query;
+    const { type, search, category_id, page, limit } = req.query;
+    const perPage = [10, 20, 30].includes(parseInt(limit)) ? parseInt(limit) : 10;
     const where = {};
     if (type && ['consumable', 'borrowable'].includes(type)) {
       where.type = type;
@@ -27,7 +28,7 @@ router.get('/', isAuthenticated, async (req, res) => {
       where,
       include: [{ model: Category, as: 'category' }],
       order: [['created_at', 'DESC']]
-    }, page, 10);
+    }, page, perPage);
 
     const categories = await Category.findAll({ order: [['name', 'ASC']] });
 
