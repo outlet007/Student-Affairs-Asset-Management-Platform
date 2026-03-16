@@ -1,0 +1,69 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="folder"></i> หมวดหมู่</h2>
+    <div class="breadcrumb">หน้าหลัก / หมวดหมู่</div>
+  </div>
+  <% if (currentUser && currentUser.role==='admin' ) { %>
+    <a href="/categories/create" class="btn btn-primary"><i data-lucide="plus" style="width:14px;height:14px"></i>
+      เพิ่มหมวดหมู่</a>
+    <% } %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (categories.length===0) { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="folder"></i></div>
+        <h4>ยังไม่มีหมวดหมู่</h4>
+        <p>เริ่มต้นด้วยการเพิ่มหมวดหมู่ใหม่</p>
+      </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส SKU</th>
+                <th>ชื่อหมวดหมู่</th>
+                <th>คำอธิบาย</th>
+                <th>ทรัพย์สิน</th>
+                <% if (currentUser && currentUser.role==='admin' ) { %>
+                  <th>จัดการ</th>
+                  <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% categories.forEach((cat)=> { %>
+                <tr>
+                  <td><span class="badge badge-primary" style="font-size:0.9em;letter-spacing:1px;">
+                      <%= cat.sku_prefix || '-' %>
+                    </span></td>
+                  <td><strong>
+                      <%= cat.name %>
+                    </strong></td>
+                  <td>
+                    <%= cat.description || '-' %>
+                  </td>
+                  <td><span class="badge badge-info">
+                      <%= cat.getDataValue('assetCount') || 0 %>
+                    </span> รายการ</td>
+                  <% if (currentUser && currentUser.role==='admin' ) { %>
+                    <td>
+                      <div class="btn-group">
+                        <a href="/categories/edit/<%= cat.id %>" class="btn btn-warning btn-xs"><i data-lucide="pencil"
+                            style="width:14px;height:14px"></i> แก้ไข</a>
+                        <form action="/categories/delete/<%= cat.id %>" method="POST" style="display:inline">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                          <button type="button" class="btn btn-danger btn-xs btn-delete" data-name="<%= cat.name %>"><i
+                              data-lucide="trash-2" style="width:14px;height:14px"></i> ลบ</button>
+                        </form>
+                      </div>
+                    </td>
+                    <% } %>
+                </tr>
+                <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+  </div>
+</div>

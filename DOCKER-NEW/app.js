@@ -8,7 +8,7 @@ const csrf = require('csurf');
 const { sequelize, Withdrawal, Borrow } = require('./models');
 
 const app = express();
-const PORT = process.env.PORT || 8021;
+const PORT = process.env.PORT || 3000;
 
 // View engine
 app.set('view engine', 'ejs');

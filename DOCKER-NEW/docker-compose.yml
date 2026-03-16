@@ -14,7 +14,7 @@ services:
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
-      - "${DB_PORT:-4021}:3306"
+      - "${DB_PORT:-3036}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -37,15 +37,15 @@ services:
     restart: unless-stopped
     environment:
       DB_HOST: db
-      DB_PORT: 4021
+      DB_PORT: 3036
       DB_NAME: ${DB_NAME:-asset_management}
       DB_USER: ${DB_USER:-asset_user}
       DB_PASSWORD: ${DB_PASSWORD:-vM7gK9rX4pZ2hT5}
       SESSION_SECRET: ${SESSION_SECRET:-t9A8jV3kB6nRxQw2}
-      PORT: 8021
+      PORT: 3000
       NODE_ENV: production
     ports:
-      - "${APP_PORT:-8021}:8021"
+      - "${APP_PORT:-3000}:3000"
     volumes:
       - app_uploads:/app/uploads
     networks:

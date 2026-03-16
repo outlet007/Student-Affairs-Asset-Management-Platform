@@ -1,0 +1,62 @@
+<% if (pagination) { %>
+<div class="pagination-wrapper">
+  <% if (pagination.totalPages > 1) { %>
+  <div class="pagination">
+    <% if (pagination.currentPage > 1) { %>
+      <a href="<%= buildQuery(pagination.currentPage - 1) %>" class="pagination-btn"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> ก่อนหน้า</a>
+    <% } else { %>
+      <span class="pagination-btn disabled"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> ก่อนหน้า</span>
+    <% } %>
+
+    <div class="pagination-pages">
+      <%
+        const maxVisible = 5;
+        let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(pagination.totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage + 1 < maxVisible) {
+          startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+      %>
+      <% if (startPage > 1) { %>
+        <a href="<%= buildQuery(1) %>" class="pagination-page">1</a>
+        <% if (startPage > 2) { %><span class="pagination-dots">...</span><% } %>
+      <% } %>
+      <% for (let i = startPage; i <= endPage; i++) { %>
+        <a href="<%= buildQuery(i) %>" class="pagination-page <%= i === pagination.currentPage ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+      <% if (endPage < pagination.totalPages) { %>
+        <% if (endPage < pagination.totalPages - 1) { %><span class="pagination-dots">...</span><% } %>
+        <a href="<%= buildQuery(pagination.totalPages) %>" class="pagination-page"><%= pagination.totalPages %></a>
+      <% } %>
+    </div>
+
+    <% if (pagination.currentPage < pagination.totalPages) { %>
+      <a href="<%= buildQuery(pagination.currentPage + 1) %>" class="pagination-btn">ถัดไป →</a>
+    <% } else { %>
+      <span class="pagination-btn disabled">ถัดไป →</span>
+    <% } %>
+  </div>
+  <% } %>
+
+  <div class="pagination-right">
+    <div class="pagination-limit-selector">
+      <label for="pagination-limit">จำนวนรายการต่อหน้า</label>
+      <select id="pagination-limit" onchange="changeLimit(this.value)">
+        <% [10, 20, 30].forEach(function(val) { %>
+          <option value="<%= val %>" <%= pagination.limit === val ? 'selected' : '' %>><%= val %></option>
+        <% }) %>
+      </select>
+    </div>
+    <span class="pagination-info">หน้า <%= pagination.currentPage %> จาก <%= pagination.totalPages || 1 %> (ทั้งหมด <%= pagination.totalItems %> รายการ)</span>
+  </div>
+</div>
+
+<script>
+function changeLimit(val) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('limit', val);
+  url.searchParams.set('page', '1');
+  window.location.href = url.toString();
+}
+</script>
+<% } %>
