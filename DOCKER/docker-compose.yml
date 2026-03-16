@@ -42,10 +42,10 @@ services:
       DB_USER: ${DB_USER:-asset_user}
       DB_PASSWORD: ${DB_PASSWORD:-vM7gK9rX4pZ2hT5}
       SESSION_SECRET: ${SESSION_SECRET:-t9A8jV3kB6nRxQw2}
-      PORT: 3000
+      PORT: 8021
       NODE_ENV: production
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-8021}:8021"
     volumes:
       - app_uploads:/app/uploads
     networks:
