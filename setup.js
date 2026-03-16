@@ -11,7 +11,7 @@ async function setup() {
   // Step 1: Create database
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 4021,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || ''
   });
