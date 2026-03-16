@@ -1,0 +1,43 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="pencil" style="width:14px;height:14px"></i> แก้ไขผู้ใช้งาน</h2>
+    <div class="breadcrumb">หน้าหลัก / ผู้ใช้งาน / แก้ไข</div>
+  </div>
+  <a href="/users" class="btn btn-outline"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> กลับ</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form action="/users/edit/<%= user.id %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ชื่อผู้ใช้</label>
+          <input type="text" class="form-control" value="<%= user.username %>" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">รหัสผ่านใหม่ <small>(เว้นว่างหากไม่เปลี่ยน)</small></label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="กรอกรหัสผ่านใหม่">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="full_name">ชื่อ-นามสกุล *</label>
+          <input type="text" class="form-control" id="full_name" name="full_name" value="<%= user.full_name %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">อีเมล</label>
+          <input type="email" class="form-control" id="email" name="email" value="<%= user.email || '' %>">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="role">สิทธิ์</label>
+        <select class="form-control" id="role" name="role">
+          <option value="staff" <%= user.role === 'staff' ? 'selected' : '' %>>เจ้าหน้าที่</option>
+          <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>ผู้ดูแลระบบ</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
