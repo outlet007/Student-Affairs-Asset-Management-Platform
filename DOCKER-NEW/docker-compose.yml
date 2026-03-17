@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
     environment:
       DB_HOST: db
-      DB_PORT: 3036
+      DB_PORT: 3306
       DB_NAME: ${DB_NAME:-asset_management}
       DB_USER: ${DB_USER:-asset_user}
       DB_PASSWORD: ${DB_PASSWORD:-vM7gK9rX4pZ2hT5}
@@ -45,7 +45,7 @@ services:
       PORT: 3000
       NODE_ENV: production
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-8021}:3000"
     volumes:
       - app_uploads:/app/uploads
     networks:

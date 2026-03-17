@@ -144,17 +144,22 @@
               <li class="activity-item">
                 <div class="activity-icon" style="background: rgba(99,102,241,0.1); color: #818cf8;"><i
                     data-lucide="package-minus"></i></div>
-                <div class="activity-text">
-                  <strong>
-                    <%= w.user ? w.user.full_name : '-' %>
-                  </strong> เบิก <strong>
-                    <%= w.asset ? w.asset.name : '-' %>
-                  </strong> จำนวน <%= w.quantity %>
-                    <small>
-                      <%= w.createdAt ? new Date(w.createdAt).toLocaleString('th-TH',
-                        {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
-                    </small>
-                </div>
+                 <div class="activity-text">
+                   <strong>
+                     <%= w.user ? w.user.full_name : '(ไม่พบข้อมูล)' %>
+                   </strong>
+                   <% if (w.user) { %>
+                     <span style="font-size:10px; padding:1px 6px; border-radius:999px; margin-left:4px;
+                       background: <%= w.user.role === 'admin' ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)' %>;
+                       color: <%= w.user.role === 'admin' ? '#f87171' : '#60a5fa' %>;"><%=
+                       w.user.role === 'admin' ? 'แอดมิน' : 'เจ้าหน้าที่' %></span>
+                   <% } %>
+                   เบิก <strong><%= w.asset ? w.asset.name : '-' %></strong> จำนวน <%= w.quantity %>
+                   <br><small>
+                     <%= w.createdAt ? new Date(w.createdAt).toLocaleString('th-TH',
+                       {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
+                   </small>
+                 </div>
                 <span
                   class="badge <%= w.status === 'approved' ? 'badge-success' : w.status === 'rejected' ? 'badge-danger' : 'badge-warning' %>">
                   <%= w.status==='approved' ? 'อนุมัติ' : w.status==='rejected' ? 'ปฏิเสธ' : 'รออนุมัติ' %>
@@ -183,17 +188,22 @@
               <li class="activity-item">
                 <div class="activity-icon" style="background: rgba(59,130,246,0.1); color: #60a5fa;"><i
                     data-lucide="repeat"></i></div>
-                <div class="activity-text">
-                  <strong>
-                    <%= b.user ? b.user.full_name : '-' %>
-                  </strong> ยืม <strong>
-                    <%= b.asset ? b.asset.name : '-' %>
-                  </strong> จำนวน <%= b.quantity %>
-                    <small>
-                      <%= b.createdAt ? new Date(b.createdAt).toLocaleString('th-TH',
-                        {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
-                    </small>
-                </div>
+                 <div class="activity-text">
+                   <strong>
+                     <%= b.user ? b.user.full_name : '(ไม่พบข้อมูล)' %>
+                   </strong>
+                   <% if (b.user) { %>
+                     <span style="font-size:10px; padding:1px 6px; border-radius:999px; margin-left:4px;
+                       background: <%= b.user.role === 'admin' ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)' %>;
+                       color: <%= b.user.role === 'admin' ? '#f87171' : '#60a5fa' %>;"><%=
+                       b.user.role === 'admin' ? 'แอดมิน' : 'เจ้าหน้าที่' %></span>
+                   <% } %>
+                   ยืม <strong><%= b.asset ? b.asset.name : '-' %></strong> จำนวน <%= b.quantity %>
+                   <br><small>
+                     <%= b.createdAt ? new Date(b.createdAt).toLocaleString('th-TH',
+                       {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
+                   </small>
+                 </div>
                 <span
                   class="badge <%= b.status === 'returned' ? 'badge-success' : b.status === 'overdue' ? 'badge-danger' : 'badge-info' %>">
                   <%= b.status==='returned' ? 'คืนแล้ว' : b.status==='overdue' ? 'เกินกำหนด' : 'กำลังยืม' %>

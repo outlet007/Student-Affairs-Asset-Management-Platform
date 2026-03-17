@@ -37,8 +37,8 @@ router.get('/', isAuthenticated, async (req, res) => {
         where,
         include: [
           { model: Asset, as: 'asset' },
-          { model: User, as: 'user' },
-          { model: User, as: 'approver' }
+          { model: User, as: 'user', paranoid: false },
+          { model: User, as: 'approver', paranoid: false }
         ],
         order: [['created_at', 'DESC']]
       });
@@ -51,8 +51,8 @@ router.get('/', isAuthenticated, async (req, res) => {
         where,
         include: [
           { model: Asset, as: 'asset' },
-          { model: User, as: 'user' },
-          { model: User, as: 'approver' }
+          { model: User, as: 'user', paranoid: false },
+          { model: User, as: 'approver', paranoid: false }
         ],
         order: [['created_at', 'DESC']]
       });
@@ -117,7 +117,7 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
         where,
         include: [
           { model: Asset, as: 'asset' },
-          { model: User, as: 'user' }
+          { model: User, as: 'user', paranoid: false }
         ],
         raw: true, nest: true
       });
@@ -138,7 +138,7 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
         where,
         include: [
           { model: Asset, as: 'asset' },
-          { model: User, as: 'user' }
+          { model: User, as: 'user', paranoid: false }
         ],
         raw: true, nest: true
       });

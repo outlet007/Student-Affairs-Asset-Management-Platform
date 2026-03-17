@@ -44,7 +44,7 @@ router.get('/', isAuthenticated, async (req, res) => {
     const recentWithdrawals = await Withdrawal.findAll({
       include: [
         { model: Asset, as: 'asset', attributes: ['name'] },
-        { model: User, as: 'user', attributes: ['full_name'] }
+        { model: User, as: 'user', attributes: ['full_name', 'role'], paranoid: false }
       ],
       order: [['created_at', 'DESC']],
       limit: 5
@@ -54,7 +54,7 @@ router.get('/', isAuthenticated, async (req, res) => {
     const recentBorrows = await Borrow.findAll({
       include: [
         { model: Asset, as: 'asset', attributes: ['name'] },
-        { model: User, as: 'user', attributes: ['full_name'] }
+        { model: User, as: 'user', attributes: ['full_name', 'role'], paranoid: false }
       ],
       order: [['created_at', 'DESC']],
       limit: 5
