@@ -194,14 +194,14 @@ router.get('/:id', isAuthenticated, async (req, res) => {
 
     const recentWithdrawals = await Withdrawal.findAll({
       where: { asset_id: asset.id },
-      include: [{ model: User, as: 'user', attributes: ['full_name'] }],
+      include: [{ model: User, as: 'user', attributes: ['full_name'], paranoid: false }],
       order: [['created_at', 'DESC']],
       limit: 10
     });
 
     const recentBorrows = await Borrow.findAll({
       where: { asset_id: asset.id },
-      include: [{ model: User, as: 'user', attributes: ['full_name'] }],
+      include: [{ model: User, as: 'user', attributes: ['full_name'], paranoid: false }],
       order: [['created_at', 'DESC']],
       limit: 10
     });

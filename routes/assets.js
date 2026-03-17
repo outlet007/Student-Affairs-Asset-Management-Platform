@@ -67,18 +67,40 @@ router.get('/api/next-code/:categoryId', isAuthenticated, async (req, res) => {
       return res.json({ code: '' });
     }
     const prefix = category.sku_prefix.toUpperCase();
-    // Find the highest existing code with this prefix
-    const lastAsset = await Asset.findOne({
-      where: { asset_code: { [Op.like]: `${prefix}-%` } },
-      order: [['asset_code', 'DESC']]
+
+    // Find ALL assets with this prefix to correctly determine the highest number
+    const existingAssets = await Asset.findAll({
+      attributes: ['asset_code'],
+      where: {
+        category_id: category.id,
+        asset_code: { [Op.like]: `${prefix}-%` }
+      }
     });
-    let nextNum = 1;
-    if (lastAsset) {
-      const match = lastAsset.asset_code.match(/-(\d+)$/);
-      if (match) nextNum = parseInt(match[1]) + 1;
+
+    // Extract numbers and find the maximum
+    let maxNum = 0;
+    existingAssets.forEach(asset => {
+      const match = asset.asset_code.match(/-(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1]);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+
+    // Generate next code, ensure it doesn't already exist
+    let nextNum = maxNum + 1;
+    let code = `${prefix}-${String(nextNum).padStart(4, '0')}`;
+
+    // Double-check uniqueness (in case of manual codes)
+    let exists = await Asset.findOne({ where: { asset_code: code } });
+    while (exists) {
+      nextNum++;
+      code = `${prefix}-${String(nextNum).padStart(4, '0')}`;
+      exists = await Asset.findOne({ where: { asset_code: code } });
     }
-    const code = `${prefix}-${String(nextNum).padStart(4, '0')}`;
-    res.json({ code, prefix });
+
+    // Return code and count of existing assets in this category
+    res.json({ code, prefix, existingCount: existingAssets.length });
   } catch (error) {
     console.error(error);
     res.json({ code: '' });

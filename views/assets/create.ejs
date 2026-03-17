@@ -25,6 +25,7 @@
           <label class="form-label" for="asset_code">รหัสทรัพย์สิน (สร้างอัตโนมัติ)</label>
           <input type="text" class="form-control" id="asset_code" name="asset_code" readonly
             placeholder="เลือกหมวดหมู่เพื่อสร้างรหัสอัตโนมัติ" style="background:var(--bg-secondary)">
+          <small id="asset_code_info" style="display:block; margin-top:4px; font-size:11px;"></small>
         </div>
       </div>
       <div class="form-row">
@@ -90,18 +91,26 @@
 <script>
   document.getElementById('category_id').addEventListener('change', async function () {
     const codeInput = document.getElementById('asset_code');
+    const codeInfo = document.getElementById('asset_code_info');
     const categoryId = this.value;
     if (!categoryId) {
       codeInput.value = '';
+      if (codeInfo) codeInfo.textContent = '';
       return;
     }
     codeInput.value = 'กำลังสร้างรหัส...';
+    if (codeInfo) codeInfo.textContent = '';
     try {
       const res = await fetch('/assets/api/next-code/' + categoryId);
       const data = await res.json();
       codeInput.value = data.code || '';
+      if (codeInfo && data.code) {
+        codeInfo.textContent = 'มีทรัพย์สินในหมวดนี้แล้ว ' + data.existingCount + ' รายการ (รหัสถัดไป: ' + data.code + ')';
+        codeInfo.style.color = 'var(--text-muted)';
+      }
     } catch (e) {
       codeInput.value = '';
+      if (codeInfo) codeInfo.textContent = 'ไม่สามารถสร้างรหัสอัตโนมัติได้';
     }
   });
 </script>
