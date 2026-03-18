@@ -907,7 +907,6 @@ textarea.form-control {
 }
 
 .search-input::before {
-  content: '🔍';
   position: absolute;
   left: 12px;
   top: 50%;

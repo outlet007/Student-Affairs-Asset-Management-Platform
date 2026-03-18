@@ -63,7 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const themeToggle = document.getElementById('theme-toggle');
   if (themeToggle) {
     const currentTheme = localStorage.getItem('theme') || 'light';
-    themeToggle.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+    themeToggle.innerHTML = currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
 
     themeToggle.addEventListener('click', () => {
       const html = document.documentElement;
@@ -72,7 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       html.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
-      themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+      themeToggle.innerHTML = next === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
 
       // Smooth transition
       html.style.transition = 'background-color 0.3s ease, color 0.3s ease';

@@ -8,6 +8,21 @@ const { fn, col, literal } = require('sequelize');
 // GET /categories
 router.get('/', isAuthenticated, async (req, res) => {
   try {
+    const { sort, order } = req.query;
+
+    // Validate sort fields
+    const allowedSortFields = ['sku_prefix', 'name', 'description', 'assetCount'];
+    const sortField = allowedSortFields.includes(sort) ? sort : 'sku_prefix';
+    const sortOrder = ['ASC', 'DESC'].includes((order || '').toUpperCase()) ? order.toUpperCase() : 'ASC';
+
+    // Build order clause
+    let orderClause;
+    if (sortField === 'assetCount') {
+      orderClause = [[literal('assetCount'), sortOrder]];
+    } else {
+      orderClause = [[sortField, sortOrder]];
+    }
+
     const categories = await Category.findAll({
       attributes: {
         include: [
@@ -20,9 +35,13 @@ router.get('/', isAuthenticated, async (req, res) => {
         attributes: []
       }],
       group: ['Category.id'],
-      order: [['sku_prefix', 'ASC']]
+      order: orderClause
     });
-    res.render('categories/index', { title: 'หมวดหมู่', categories });
+    res.render('categories/index', {
+      title: 'หมวดหมู่',
+      categories,
+      filters: { sort: sortField, order: sortOrder }
+    });
   } catch (error) {
     console.error(error);
     req.flash('error', 'เกิดข้อผิดพลาด');

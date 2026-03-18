@@ -12,14 +12,17 @@
 <form method="GET" action="/assets">
   <div class="filter-bar">
     <div class="filter-tabs">
-      <a href="/assets" class="filter-tab <%= !filters.type ? 'active' : '' %>">ทั้งหมด</a>
+      <a href="/assets" class="filter-tab <%= !filters.type && filters.low_stock !== '1' ? 'active' : '' %>">ทั้งหมด</a>
       <a href="/assets?type=consumable"
         class="filter-tab <%= filters.type === 'consumable' ? 'active' : '' %>">ใช้แล้วหมดไป</a>
       <a href="/assets?type=borrowable"
         class="filter-tab <%= filters.type === 'borrowable' ? 'active' : '' %>">ยืม-คืนได้</a>
+      <a href="/assets?low_stock=1"
+        class="filter-tab <%= filters.low_stock === '1' ? 'active' : '' %>"><i data-lucide="triangle-alert" style="width:14px;height:14px"></i> ใกล้หมด</a>
     </div>
-    <div class="search-input">
-      <input type="text" name="search" value="<%= filters.search %>" placeholder="ค้นหาชื่อหรือรหัส...">
+    <div class="search-input" style="position: relative; display: flex; align-items: center;">
+      <i data-lucide="text-search" style="position: absolute; left: 10px; width: 14px; height: 14px; color: var(--text-color); opacity: 0.5;"></i>
+      <input type="text" name="search" value="<%= filters.search %>" placeholder="ค้นหาชื่อหรือรหัส..." style="padding-left: 32px;">
     </div>
     <select class="form-control" name="category_id" style="max-width:200px" onchange="this.form.submit()">
       <option value="">-- หมวดหมู่ทั้งหมด --</option>
@@ -42,18 +45,37 @@
       </div>
       <% } else { %>
         <div class="table-responsive">
+          <%
+            const getSortIcon = (field) => {
+              if (filters.sort === field) {
+                return filters.order === 'ASC' ? ' <i data-lucide="arrow-up" style="width:14px;height:14px;display:inline"></i>' : ' <i data-lucide="arrow-down" style="width:14px;height:14px;display:inline"></i>';
+              }
+              return ' <i data-lucide="chevrons-up-down" style="width:14px;height:14px;display:inline;opacity:0.3"></i>';
+            };
+            
+            const getSortUrl = (field) => {
+              const newOrder = (filters.sort === field && filters.order === 'ASC') ? 'DESC' : 'ASC';
+              let urlParams = new URLSearchParams();
+              if (filters.type) urlParams.set('type', filters.type);
+              if (filters.search) urlParams.set('search', filters.search);
+              if (filters.category_id) urlParams.set('category_id', filters.category_id);
+              urlParams.set('sort', field);
+              urlParams.set('order', newOrder);
+              return '?' + urlParams.toString();
+            };
+          %>
           <table>
             <thead>
               <tr>
-                <th>รหัส</th>
-                <th>ชื่อ</th>
-                <th>หมวดหมู่</th>
-                <th>ประเภท</th>
-                <th>สถานะ</th>
-                <th>คงเหลือ</th>
-                <th>ราคา/หน่วย</th>
-                <th>สถานที่</th>
-                <th>วันที่เพิ่ม</th>
+                <th><a href="<%= getSortUrl('asset_code') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">รหัส<%- getSortIcon('asset_code') %></a></th>
+                <th><a href="<%= getSortUrl('name') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">ชื่อ<%- getSortIcon('name') %></a></th>
+                <th><a href="<%= getSortUrl('category_id') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">หมวดหมู่<%- getSortIcon('category_id') %></a></th>
+                <th><a href="<%= getSortUrl('type') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">ประเภท<%- getSortIcon('type') %></a></th>
+                <th><a href="<%= getSortUrl('status') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">สถานะ<%- getSortIcon('status') %></a></th>
+                <th><a href="<%= getSortUrl('quantity') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">คงเหลือ<%- getSortIcon('quantity') %></a></th>
+                <th><a href="<%= getSortUrl('price_per_unit') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">ราคา/หน่วย<%- getSortIcon('price_per_unit') %></a></th>
+                <th><a href="<%= getSortUrl('location') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">สถานที่<%- getSortIcon('location') %></a></th>
+                <th><a href="<%= getSortUrl('created_at') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">วันที่เพิ่ม<%- getSortIcon('created_at') %></a></th>
                 <% if (currentUser && currentUser.role==='admin' ) { %>
                   <th>จัดการ</th>
                   <% } %>
@@ -95,7 +117,7 @@
                               <% } %>
                   </td>
                   <td>
-                    <%= asset.price_per_unit ? parseFloat(asset.price_per_unit).toLocaleString('th-TH') + ' ฿' : '-' %>
+                    <%= asset.price_per_unit ? parseFloat(asset.price_per_unit).toLocaleString('th-TH') + ' บาท' : '-' %>
                   </td>
                   <td>
                     <%= asset.location || '-' %>

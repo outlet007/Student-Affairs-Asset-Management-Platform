@@ -3,12 +3,13 @@ const router = express.Router();
 const { Asset, Category, Withdrawal, Borrow, User } = require('../models');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
 const { paginate, buildPaginationQuery } = require('../utils/paginationHelper');
 
 // GET /assets
 router.get('/', isAuthenticated, async (req, res) => {
   try {
-    const { type, search, category_id, page, limit } = req.query;
+    const { type, search, category_id, page, limit, sort, order, low_stock } = req.query;
     const perPage = [10, 20, 30].includes(parseInt(limit)) ? parseInt(limit) : 10;
     const where = {};
     if (type && ['consumable', 'borrowable'].includes(type)) {
@@ -23,11 +24,30 @@ router.get('/', isAuthenticated, async (req, res) => {
     if (category_id) {
       where.category_id = category_id;
     }
+    if (low_stock === '1') {
+      where.quantity = { [Op.lte]: sequelize.col('min_quantity') };
+      where.min_quantity = { [Op.gt]: 0 };
+    }
+
+    const sortField = sort || 'created_at';
+    const sortOrder = (order || 'DESC').toUpperCase();
+    
+    // validate sort fields to prevent sql injection
+    const allowedSortFields = ['asset_code', 'name', 'category_id', 'type', 'status', 'quantity', 'price_per_unit', 'location', 'created_at'];
+    const finalSortField = allowedSortFields.includes(sortField) ? sortField : 'created_at';
+    const finalSortOrder = ['ASC', 'DESC'].includes(sortOrder) ? sortOrder : 'DESC';
+
+    let orderQuery;
+    if (finalSortField === 'category_id') {
+      orderQuery = [[{ model: Category, as: 'category' }, 'name', finalSortOrder]];
+    } else {
+      orderQuery = [[finalSortField, finalSortOrder]];
+    }
 
     const result = await paginate(Asset, {
       where,
       include: [{ model: Category, as: 'category' }],
-      order: [['created_at', 'DESC']]
+      order: orderQuery
     }, page, perPage);
 
     const categories = await Category.findAll({ order: [['name', 'ASC']] });
@@ -37,7 +57,14 @@ router.get('/', isAuthenticated, async (req, res) => {
       assets: result.rows,
       categories,
       pagination: result,
-      filters: { type: type || '', search: search || '', category_id: category_id || '' },
+      filters: { 
+        type: type || '', 
+        search: search || '', 
+        category_id: category_id || '',
+        sort: finalSortField,
+        order: finalSortOrder,
+        low_stock: low_stock || ''
+      },
       buildQuery: (p) => buildPaginationQuery(req.query, p)
     });
   } catch (error) {
