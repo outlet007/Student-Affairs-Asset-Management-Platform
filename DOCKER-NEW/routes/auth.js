@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User } = require('../models');
+const { User, Department } = require('../models');
 
 // GET /login
 router.get('/login', (req, res) => {
@@ -14,7 +14,10 @@ router.get('/login', (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ where: { username } });
+    const user = await User.findOne({
+      where: { username },
+      include: [{ model: Department, as: 'department' }]
+    });
     
     if (!user) {
       req.flash('error', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
@@ -31,7 +34,9 @@ router.post('/login', async (req, res) => {
       id: user.id,
       username: user.username,
       full_name: user.full_name,
-      role: user.role
+      role: user.role,
+      department_id: user.department_id,
+      department_name: user.department ? user.department.name : null
     };
 
     req.flash('success', `ยินดีต้อนรับ ${user.full_name}`);

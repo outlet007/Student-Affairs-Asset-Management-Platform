@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { Borrow, Asset, User, Category } = require('../models');
+const { Borrow, Asset, User, Category, Department } = require('../models');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const { paginate, buildPaginationQuery } = require('../utils/paginationHelper');
 const { checkOverdueBorrows } = require('../utils/overdueChecker');
+
+// Helper: get department asset filter
+async function getDeptAssetIds(req) {
+  if (req.session.user.role === 'superadmin') return null;
+  const assets = await Asset.findAll({
+    where: { department_id: req.session.user.department_id },
+    attributes: ['id'],
+    raw: true
+  });
+  return assets.map(a => a.id);
+}
 
 // GET /borrows
 router.get('/', isAuthenticated, async (req, res) => {
@@ -12,10 +23,21 @@ router.get('/', isAuthenticated, async (req, res) => {
     // Check for overdue borrows
     await checkOverdueBorrows();
 
-    const { status, search, category_id, page, limit } = req.query;
+    const { status, search, category_id, department_id, page, limit } = req.query;
     const perPage = [10, 20, 30].includes(parseInt(limit)) ? parseInt(limit) : 10;
     const where = {};
     if (status) where.status = status;
+
+    // Staff: only see own records
+    if (req.session.user.role === 'staff') {
+      where.user_id = req.session.user.id;
+    }
+
+    // Department filter
+    const deptAssetIds = await getDeptAssetIds(req);
+    if (deptAssetIds) {
+      where.asset_id = { [Op.in]: deptAssetIds };
+    }
 
     // Build Asset include with optional search/category filters
     const assetWhere = {};
@@ -24,6 +46,9 @@ router.get('/', isAuthenticated, async (req, res) => {
     }
     if (category_id) {
       assetWhere.category_id = category_id;
+    }
+    if (department_id && req.session.user.role === 'superadmin') {
+      assetWhere.department_id = department_id;
     }
 
     const assetInclude = {
@@ -47,14 +72,21 @@ router.get('/', isAuthenticated, async (req, res) => {
 
     const categories = await Category.findAll({ order: [['name', 'ASC']] });
 
+    let departments = [];
+    if (req.session.user.role === 'superadmin') {
+      departments = await Department.findAll({ order: [['name', 'ASC']] });
+    }
+
     res.render('borrows/index', {
       title: 'การยืม-คืนทรัพย์สิน',
       borrows: result.rows,
       pagination: result,
       categories,
+      departments,
       filterStatus: status || '',
       filterSearch: search || '',
       filterCategoryId: category_id || '',
+      filterDepartmentId: department_id || '',
       buildQuery: (p) => buildPaginationQuery(req.query, p)
     });
   } catch (error) {
@@ -67,8 +99,12 @@ router.get('/', isAuthenticated, async (req, res) => {
 // GET /borrows/create
 router.get('/create', isAuthenticated, async (req, res) => {
   try {
+    const assetWhere = { type: 'borrowable', quantity: { [Op.gt]: 0 }, status: 'active' };
+    if (req.session.user.role !== 'superadmin' && req.session.user.department_id) {
+      assetWhere.department_id = req.session.user.department_id;
+    }
     const assets = await Asset.findAll({
-      where: { type: 'borrowable', quantity: { [Op.gt]: 0 }, status: 'active' },
+      where: assetWhere,
       include: [{ model: Category, as: 'category' }],
       order: [['name', 'ASC']]
     });
@@ -218,6 +254,33 @@ router.post('/return/:id', isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error(error);
     req.flash('error', 'เกิดข้อผิดพลาดในการคืน');
+    res.redirect('/borrows');
+  }
+});
+
+// POST /borrows/cancel/:id - Cancel a pending borrow
+router.post('/cancel/:id', isAuthenticated, async (req, res) => {
+  try {
+    const borrow = await Borrow.findByPk(req.params.id);
+    if (!borrow || borrow.status !== 'pending') {
+      req.flash('error', 'ไม่พบรายการหรือไม่สามารถยกเลิกได้');
+      return res.redirect('/borrows');
+    }
+
+    // Only the requester, admin, or superadmin can cancel
+    if (borrow.user_id !== req.session.user.id && req.session.user.role !== 'superadmin') {
+      req.flash('error', 'คุณไม่มีสิทธิ์ยกเลิกรายการนี้');
+      return res.redirect('/borrows');
+    }
+
+    borrow.status = 'cancelled';
+    await borrow.save();
+
+    req.flash('success', 'ยกเลิกรายการยืมสำเร็จ');
+    res.redirect('/borrows');
+  } catch (error) {
+    console.error(error);
+    req.flash('error', 'เกิดข้อผิดพลาด');
     res.redirect('/borrows');
   }
 });

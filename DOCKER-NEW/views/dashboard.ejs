@@ -77,7 +77,7 @@
       </div>
     </div>
   </a>
-  <a href="/assets" class="stat-card-link">
+  <a href="/assets?low_stock=1" class="stat-card-link">
     <div class="stat-card danger">
       <div class="stat-icon danger"><i data-lucide="triangle-alert"></i></div>
       <div class="stat-info">
@@ -88,6 +88,7 @@
       </div>
     </div>
   </a>
+  <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) { %>
   <a href="/users" class="stat-card-link">
     <div class="stat-card info">
       <div class="stat-icon info"><i data-lucide="users"></i></div>
@@ -99,6 +100,7 @@
       </div>
     </div>
   </a>
+  <% } %>
 </div>
 
 <!-- Charts -->
@@ -221,7 +223,7 @@
   <div class="card mt-2">
     <div class="card-header">
       <h3><i data-lucide="triangle-alert"></i> ทรัพย์สินใกล้หมด</h3>
-      <a href="/assets" class="btn btn-outline btn-xs">ดูทั้งหมด</a>
+      <a href="/assets?low_stock=1" class="btn btn-outline btn-xs">ดูทั้งหมด</a>
     </div>
     <div class="card-body">
       <div class="table-responsive">

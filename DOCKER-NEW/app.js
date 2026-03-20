@@ -5,7 +5,8 @@ const flash = require('connect-flash');
 const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
 const csrf = require('csurf');
-const { sequelize, Withdrawal, Borrow } = require('./models');
+const { sequelize, Withdrawal, Borrow, Asset } = require('./models');
+const { Op } = require('sequelize');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,7 +29,8 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+  rolling: true,
+  cookie: { maxAge: 60 * 60 * 1000 }
 }));
 
 // Flash messages
@@ -49,9 +51,38 @@ app.use(async (req, res, next) => {
   // Notification badge counts (only if user is logged in)
   if (req.session.user) {
     try {
-      res.locals.pendingWithdrawalCount = await Withdrawal.count({ where: { status: 'pending' } });
-      res.locals.overdueBorrowCount = await Borrow.count({ where: { status: 'overdue' } });
-      res.locals.pendingBorrowCount = await Borrow.count({ where: { status: 'pending' } });
+      // Filter by department for non-superadmin
+      if (req.session.user.role === 'superadmin') {
+        res.locals.pendingWithdrawalCount = await Withdrawal.count({ where: { status: 'pending' } });
+        res.locals.overdueBorrowCount = await Borrow.count({ where: { status: 'overdue' } });
+        res.locals.pendingBorrowCount = await Borrow.count({ where: { status: 'pending' } });
+      } else if (req.session.user.role === 'staff') {
+        // Staff: only their own records
+        const userId = req.session.user.id;
+        res.locals.pendingWithdrawalCount = await Withdrawal.count({ where: { status: 'pending', user_id: userId } });
+        res.locals.overdueBorrowCount = await Borrow.count({ where: { status: 'overdue', user_id: userId } });
+        res.locals.pendingBorrowCount = await Borrow.count({ where: { status: 'pending', user_id: userId } });
+      } else if (req.session.user.department_id) {
+        const deptAssets = await Asset.findAll({
+          where: { department_id: req.session.user.department_id },
+          attributes: ['id'],
+          raw: true
+        });
+        const deptAssetIds = deptAssets.map(a => a.id);
+        if (deptAssetIds.length > 0) {
+          res.locals.pendingWithdrawalCount = await Withdrawal.count({ where: { status: 'pending', asset_id: { [Op.in]: deptAssetIds } } });
+          res.locals.overdueBorrowCount = await Borrow.count({ where: { status: 'overdue', asset_id: { [Op.in]: deptAssetIds } } });
+          res.locals.pendingBorrowCount = await Borrow.count({ where: { status: 'pending', asset_id: { [Op.in]: deptAssetIds } } });
+        } else {
+          res.locals.pendingWithdrawalCount = 0;
+          res.locals.overdueBorrowCount = 0;
+          res.locals.pendingBorrowCount = 0;
+        }
+      } else {
+        res.locals.pendingWithdrawalCount = 0;
+        res.locals.overdueBorrowCount = 0;
+        res.locals.pendingBorrowCount = 0;
+      }
     } catch (e) {
       res.locals.pendingWithdrawalCount = 0;
       res.locals.overdueBorrowCount = 0;
@@ -82,6 +113,7 @@ app.use('/withdrawals', require('./routes/withdrawals'));
 app.use('/borrows', require('./routes/borrows'));
 app.use('/reports', require('./routes/reports'));
 app.use('/import', require('./routes/import'));
+app.use('/departments', require('./routes/departments'));
 
 // Root redirect
 app.get('/', (req, res) => {
@@ -104,7 +136,7 @@ app.use((err, req, res, next) => {
 });
 
 // Sync DB and start server
-sequelize.sync().then(() => {
+sequelize.sync({ alter: true }).then(() => {
   console.log('Database synced successfully');
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

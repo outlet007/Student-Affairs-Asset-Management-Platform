@@ -30,12 +30,33 @@
           <input type="email" class="form-control" id="email" name="email" placeholder="กรอกอีเมล">
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="role">สิทธิ์</label>
-        <select class="form-control" id="role" name="role">
-          <option value="staff">เจ้าหน้าที่</option>
-          <option value="admin">ผู้ดูแลระบบ</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="role">สิทธิ์</label>
+          <select class="form-control" id="role" name="role">
+            <option value="staff">เจ้าหน้าที่</option>
+            <option value="admin">ผู้ดูแลหน่วยงาน</option>
+            <% if (currentUser && currentUser.role === 'superadmin') { %>
+              <option value="superadmin">ผู้ดูแลระบบสูงสุด</option>
+            <% } %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="department_id">หน่วยงาน</label>
+          <% if (currentUser && currentUser.role === 'superadmin') { %>
+            <select class="form-control" id="department_id" name="department_id">
+              <option value="">-- ไม่ระบุ --</option>
+              <% if (typeof departments !== 'undefined') { %>
+                <% departments.forEach(dept => { %>
+                  <option value="<%= dept.id %>"><%= dept.name %></option>
+                <% }) %>
+              <% } %>
+            </select>
+          <% } else { %>
+            <input type="text" class="form-control" value="<%= currentUser.department_name || 'ไม่ระบุ' %>" disabled>
+            <small style="color:var(--text-muted)">ผู้ใช้ใหม่จะถูกเพิ่มในหน่วยงานของคุณโดยอัตโนมัติ</small>
+          <% } %>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary">💾 บันทึก</button>
     </form>

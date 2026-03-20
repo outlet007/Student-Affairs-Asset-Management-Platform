@@ -32,6 +32,14 @@
         <option value="<%= cat.id %>" <%= filterCategoryId == cat.id ? 'selected' : '' %>><%= cat.name %></option>
       <% }) %>
     </select>
+    <% if (typeof departments !== 'undefined' && departments.length > 0) { %>
+    <select class="form-control" name="department_id" style="max-width:200px" onchange="this.form.submit()">
+      <option value="">-- หน่วยงานทั้งหมด --</option>
+      <% departments.forEach(dept => { %>
+        <option value="<%= dept.id %>" <%= filterDepartmentId == dept.id ? 'selected' : '' %>><%= dept.name %></option>
+      <% }) %>
+    </select>
+    <% } %>
     <button type="submit" class="btn btn-outline btn-sm"><i data-lucide="search" style="width:14px;height:14px"></i> ค้นหา</button>
   </div>
 </form>
@@ -79,13 +87,26 @@
                   <% } %>
                 </td>
                 <td>
-                  <% if (b.status === 'pending' && currentUser && currentUser.role === 'admin') { %>
+                  <% if (b.status === 'pending' && currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) { %>
                     <div class="btn-group">
                       <form action="/borrows/approve/<%= b.id %>" method="POST" style="display:inline">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn btn-success btn-xs"><i data-lucide="check-circle" style="width:16px;height:16px"></i> อนุมัติ</button>
                       </form>
                       <button type="button" class="btn btn-danger btn-xs btn-reject-borrow" data-id="<%= b.id %>"><i data-lucide="x-circle" style="width:16px;height:16px"></i> ปฏิเสธ</button>
+                      <% if (currentUser.role === 'superadmin') { %>
+                      <form action="/borrows/cancel/<%= b.id %>" method="POST" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-outline btn-xs" onclick="return confirm('ต้องการยกเลิกรายการนี้?')">🚫 ยกเลิก</button>
+                      </form>
+                      <% } %>
+                    </div>
+                  <% } else if (b.status === 'pending' && currentUser && b.user_id === currentUser.id) { %>
+                    <div class="btn-group">
+                      <form action="/borrows/cancel/<%= b.id %>" method="POST" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-outline btn-xs" onclick="return confirm('ต้องการยกเลิกรายการนี้?')">🚫 ยกเลิก</button>
+                      </form>
                     </div>
                   <% } else if (b.status === 'borrowing' || b.status === 'overdue') { %>
                     <a href="/borrows/return/<%= b.id %>" class="btn <%= b.status === 'overdue' ? 'btn-warning' : 'btn-success' %> btn-xs"><i data-lucide="download"></i> คืน</a>

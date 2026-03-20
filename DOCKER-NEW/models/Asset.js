@@ -28,6 +28,14 @@ const Asset = sequelize.define('Asset', {
       key: 'id'
     }
   },
+  department_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'departments',
+      key: 'id'
+    }
+  },
   type: {
     type: DataTypes.ENUM('consumable', 'borrowable'),
     allowNull: false,

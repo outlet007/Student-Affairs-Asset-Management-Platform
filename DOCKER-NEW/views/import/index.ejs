@@ -108,6 +108,17 @@
         <div class="card-body">
             <form action="/import/upload?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data"
                 id="import-form">
+                <% if (typeof departments !== 'undefined' && departments.length > 0) { %>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label" for="department_id"><i data-lucide="building" style="width:14px;height:14px"></i> เลือกหน่วยงานที่ต้องการนำเข้าทรัพย์สิน *</label>
+                    <select class="form-control" id="department_id" name="department_id" required style="max-width:400px;">
+                        <option value="">-- เลือกหน่วยงาน --</option>
+                        <% departments.forEach(dept => { %>
+                            <option value="<%= dept.id %>"><%= dept.name %> (<%= dept.code || '-' %>)</option>
+                        <% }) %>
+                    </select>
+                </div>
+                <% } %>
                 <div class="upload-area" id="upload-area">
                     <div class="upload-icon">
                         <i data-lucide="upload-cloud" style="width:48px;height:48px"></i>

@@ -8,11 +8,19 @@ const isAuthenticated = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'admin') {
+  if (req.session.user && (req.session.user.role === 'admin' || req.session.user.role === 'superadmin')) {
     return next();
   }
   req.flash('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
   res.redirect('/dashboard');
 };
 
-module.exports = { isAuthenticated, isAdmin };
+const isSuperAdmin = (req, res, next) => {
+  if (req.session.user && req.session.user.role === 'superadmin') {
+    return next();
+  }
+  req.flash('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+  res.redirect('/dashboard');
+};
+
+module.exports = { isAuthenticated, isAdmin, isSuperAdmin };

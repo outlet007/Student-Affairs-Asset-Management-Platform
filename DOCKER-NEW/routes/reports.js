@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { Asset, Category, Withdrawal, Borrow, User } = require('../models');
+const { Asset, Category, Withdrawal, Borrow, User, Department } = require('../models');
 const { isAuthenticated } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const { Parser } = require('json2csv');
 
+// Helper: get department filter
+function getDeptFilter(req) {
+  if (req.session.user.role === 'superadmin') return {};
+  return { department_id: req.session.user.department_id };
+}
+
 // GET /reports
 router.get('/', isAuthenticated, async (req, res) => {
   try {
-    const { start_date, end_date, report_type } = req.query;
+    const { start_date, end_date, report_type, department_id } = req.query;
     const dateFilter = {};
 
     if (start_date) {
@@ -20,11 +26,18 @@ router.get('/', isAuthenticated, async (req, res) => {
       dateFilter[Op.lte] = endDate;
     }
 
+    const deptFilter = getDeptFilter(req);
+    // Superadmin can filter by specific department
+    if (department_id && req.session.user.role === 'superadmin') {
+      deptFilter.department_id = department_id;
+    }
+
     let reportData = [];
     const type = report_type || 'assets';
 
     if (type === 'assets') {
       reportData = await Asset.findAll({
+        where: deptFilter,
         include: [{ model: Category, as: 'category' }],
         order: [['name', 'ASC']]
       });
@@ -33,10 +46,15 @@ router.get('/', isAuthenticated, async (req, res) => {
       if (start_date || end_date) {
         where.withdrawal_date = dateFilter;
       }
+      // Filter by department via asset
+      const assetInclude = { model: Asset, as: 'asset' };
+      if (deptFilter.department_id) {
+        assetInclude.where = { department_id: deptFilter.department_id };
+      }
       reportData = await Withdrawal.findAll({
         where,
         include: [
-          { model: Asset, as: 'asset' },
+          assetInclude,
           { model: User, as: 'user', paranoid: false },
           { model: User, as: 'approver', paranoid: false }
         ],
@@ -47,10 +65,14 @@ router.get('/', isAuthenticated, async (req, res) => {
       if (start_date || end_date) {
         where.borrow_date = dateFilter;
       }
+      const assetInclude = { model: Asset, as: 'asset' };
+      if (deptFilter.department_id) {
+        assetInclude.where = { department_id: deptFilter.department_id };
+      }
       reportData = await Borrow.findAll({
         where,
         include: [
-          { model: Asset, as: 'asset' },
+          assetInclude,
           { model: User, as: 'user', paranoid: false },
           { model: User, as: 'approver', paranoid: false }
         ],
@@ -58,13 +80,20 @@ router.get('/', isAuthenticated, async (req, res) => {
       });
     }
 
+    let departments = [];
+    if (req.session.user.role === 'superadmin') {
+      departments = await Department.findAll({ order: [['name', 'ASC']] });
+    }
+
     res.render('reports/index', {
       title: 'รายงาน',
       reportData,
+      departments,
       filters: {
         start_date: start_date || '',
         end_date: end_date || '',
-        report_type: type
+        report_type: type,
+        department_id: department_id || ''
       }
     });
   } catch (error) {
@@ -77,7 +106,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 // GET /reports/export/csv
 router.get('/export/csv', isAuthenticated, async (req, res) => {
   try {
-    const { start_date, end_date, report_type } = req.query;
+    const { start_date, end_date, report_type, department_id } = req.query;
     const dateFilter = {};
 
     if (start_date) dateFilter[Op.gte] = new Date(start_date);
@@ -87,6 +116,10 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
       dateFilter[Op.lte] = endDate;
     }
 
+    const deptFilter = getDeptFilter(req);
+    if (department_id && req.session.user.role === 'superadmin') {
+      deptFilter.department_id = department_id;
+    }
     let data = [];
     let fields = [];
     let filename = 'report';
@@ -94,6 +127,7 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
 
     if (type === 'assets') {
       const assets = await Asset.findAll({
+        where: deptFilter,
         include: [{ model: Category, as: 'category' }],
         raw: true, nest: true
       });
@@ -113,10 +147,14 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
     } else if (type === 'withdrawals') {
       const where = {};
       if (start_date || end_date) where.withdrawal_date = dateFilter;
+      const assetInclude = { model: Asset, as: 'asset' };
+      if (deptFilter.department_id) {
+        assetInclude.where = { department_id: deptFilter.department_id };
+      }
       const withdrawals = await Withdrawal.findAll({
         where,
         include: [
-          { model: Asset, as: 'asset' },
+          assetInclude,
           { model: User, as: 'user', paranoid: false }
         ],
         raw: true, nest: true
@@ -134,10 +172,14 @@ router.get('/export/csv', isAuthenticated, async (req, res) => {
     } else if (type === 'borrows') {
       const where = {};
       if (start_date || end_date) where.borrow_date = dateFilter;
+      const assetInclude = { model: Asset, as: 'asset' };
+      if (deptFilter.department_id) {
+        assetInclude.where = { department_id: deptFilter.department_id };
+      }
       const borrows = await Borrow.findAll({
         where,
         include: [
-          { model: Asset, as: 'asset' },
+          assetInclude,
           { model: User, as: 'user', paranoid: false }
         ],
         raw: true, nest: true

@@ -18,6 +18,17 @@
             <option value="borrows" <%=filters.report_type==='borrows' ? 'selected' : '' %>>รายการยืม-คืน</option>
           </select>
         </div>
+        <% if (typeof departments !== 'undefined' && departments.length > 0) { %>
+        <div class="form-group">
+          <label class="form-label" for="department_id">หน่วยงาน</label>
+          <select class="form-control" id="department_id" name="department_id">
+            <option value="">-- ทั้งหมด --</option>
+            <% departments.forEach(dept => { %>
+              <option value="<%= dept.id %>" <%= filters.department_id == dept.id ? 'selected' : '' %>><%= dept.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <% } %>
         <div class="form-group">
           <label class="form-label" for="start_date">ตั้งแต่วันที่</label>
           <input type="date" class="form-control" id="start_date" name="start_date" value="<%= filters.start_date %>">
@@ -29,7 +40,7 @@
       </div>
       <div class="btn-group mt-1">
         <button type="submit" class="btn btn-primary"><i data-lucide="search" style="width:14px;height:14px"></i> ค้นหา</button>
-        <a href="/reports/export/csv?report_type=<%= filters.report_type %>&start_date=<%= filters.start_date %>&end_date=<%= filters.end_date %>"
+        <a href="/reports/export/csv?report_type=<%= filters.report_type %>&start_date=<%= filters.start_date %>&end_date=<%= filters.end_date %>&department_id=<%= filters.department_id || '' %>"
           class="btn btn-success"><i data-lucide="download"></i> Export CSV</a>
       </div>
     </form>

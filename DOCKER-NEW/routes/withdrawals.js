@@ -1,17 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const { Withdrawal, Asset, User, Category } = require('../models');
+const { Withdrawal, Asset, User, Category, Department } = require('../models');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const { paginate, buildPaginationQuery } = require('../utils/paginationHelper');
 
+// Helper: get department asset IDs
+async function getDeptAssetIds(req) {
+  if (req.session.user.role === 'superadmin') return null;
+  const assets = await Asset.findAll({
+    where: { department_id: req.session.user.department_id },
+    attributes: ['id'],
+    raw: true
+  });
+  return assets.map(a => a.id);
+}
+
 // GET /withdrawals
 router.get('/', isAuthenticated, async (req, res) => {
   try {
-    const { status, search, category_id, page, limit } = req.query;
+    const { status, search, category_id, department_id, page, limit } = req.query;
     const perPage = [10, 20, 30].includes(parseInt(limit)) ? parseInt(limit) : 10;
     const where = {};
     if (status) where.status = status;
+
+    // Staff: only see own records
+    if (req.session.user.role === 'staff') {
+      where.user_id = req.session.user.id;
+    }
+
+    // Department filter
+    const deptAssetIds = await getDeptAssetIds(req);
+    if (deptAssetIds) {
+      where.asset_id = { [Op.in]: deptAssetIds };
+    }
 
     // Build Asset include with optional search/category filters
     const assetWhere = {};
@@ -20,6 +42,9 @@ router.get('/', isAuthenticated, async (req, res) => {
     }
     if (category_id) {
       assetWhere.category_id = category_id;
+    }
+    if (department_id && req.session.user.role === 'superadmin') {
+      assetWhere.department_id = department_id;
     }
 
     const assetInclude = {
@@ -43,14 +68,21 @@ router.get('/', isAuthenticated, async (req, res) => {
 
     const categories = await Category.findAll({ order: [['name', 'ASC']] });
 
+    let departments = [];
+    if (req.session.user.role === 'superadmin') {
+      departments = await Department.findAll({ order: [['name', 'ASC']] });
+    }
+
     res.render('withdrawals/index', {
       title: 'การเบิกใช้ทรัพย์สิน',
       withdrawals: result.rows,
       pagination: result,
       categories,
+      departments,
       filterStatus: status || '',
       filterSearch: search || '',
       filterCategoryId: category_id || '',
+      filterDepartmentId: department_id || '',
       buildQuery: (p) => buildPaginationQuery(req.query, p)
     });
   } catch (error) {
@@ -63,8 +95,12 @@ router.get('/', isAuthenticated, async (req, res) => {
 // GET /withdrawals/create
 router.get('/create', isAuthenticated, async (req, res) => {
   try {
+    const assetWhere = { type: 'consumable', quantity: { [Op.gt]: 0 }, status: 'active' };
+    if (req.session.user.role !== 'superadmin' && req.session.user.department_id) {
+      assetWhere.department_id = req.session.user.department_id;
+    }
     const assets = await Asset.findAll({
-      where: { type: 'consumable', quantity: { [Op.gt]: 0 }, status: 'active' },
+      where: assetWhere,
       include: [{ model: Category, as: 'category' }],
       order: [['name', 'ASC']]
     });
@@ -176,7 +212,7 @@ router.post('/cancel/:id', isAuthenticated, async (req, res) => {
     }
 
     // Only the requester can cancel
-    if (withdrawal.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
+    if (withdrawal.user_id !== req.session.user.id && req.session.user.role !== 'superadmin') {
       req.flash('error', 'คุณไม่มีสิทธิ์ยกเลิกรายการนี้');
       return res.redirect('/withdrawals');
     }

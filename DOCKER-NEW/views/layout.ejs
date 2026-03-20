@@ -37,12 +37,16 @@
           <a href="/assets" class="nav-link <%= currentPath.startsWith('/assets') ? 'active' : '' %>">
             <span class="nav-icon"><i data-lucide="tag"></i></span> ทรัพย์สิน
           </a>
+          <% if (currentUser && currentUser.role === 'superadmin') { %>
           <a href="/categories" class="nav-link <%= currentPath.startsWith('/categories') ? 'active' : '' %>">
             <span class="nav-icon"><i data-lucide="folder"></i></span> หมวดหมู่
           </a>
+          <% } %>
+          <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) { %>
           <a href="/import" class="nav-link <%= currentPath.startsWith('/import') ? 'active' : '' %>">
             <span class="nav-icon"><i data-lucide="file-up"></i></span> นำเข้าข้อมูล
           </a>
+          <% } %>
         </div>
 
         <div class="nav-section">
@@ -67,19 +71,26 @@
           </a>
         </div>
 
+        <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) { %>
         <div class="nav-section">
           <div class="nav-section-title">รายงาน</div>
           <a href="/reports" class="nav-link <%= currentPath.startsWith('/reports') ? 'active' : '' %>">
             <span class="nav-icon"><i data-lucide="file-bar-chart"></i></span> รายงาน
           </a>
         </div>
+        <% } %>
 
-        <% if (currentUser && currentUser.role==='admin' ) { %>
+        <% if (currentUser && (currentUser.role==='admin' || currentUser.role==='superadmin')) { %>
           <div class="nav-section">
             <div class="nav-section-title">ผู้ดูแลระบบ</div>
             <a href="/users" class="nav-link <%= currentPath.startsWith('/users') ? 'active' : '' %>">
               <span class="nav-icon"><i data-lucide="users"></i></span> ผู้ใช้งาน
             </a>
+            <% if (currentUser.role==='superadmin') { %>
+              <a href="/departments" class="nav-link <%= currentPath.startsWith('/departments') ? 'active' : '' %>">
+                <span class="nav-icon"><i data-lucide="building"></i></span> หน่วยงาน
+              </a>
+            <% } %>
           </div>
           <% } %>
       </nav>
@@ -96,7 +107,10 @@
                   <%= currentUser.full_name %>
                 </div>
                 <div class="user-role">
-                  <%= currentUser.role==='admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่' %>
+                  <%= currentUser.role==='superadmin' ? 'ผู้ดูแลระบบสูงสุด' : currentUser.role==='admin' ? 'ผู้ดูแลหน่วยงาน' : 'เจ้าหน้าที่' %>
+                  <% if (currentUser.department_name) { %>
+                    <br><small><%= currentUser.department_name %></small>
+                  <% } %>
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@
     <h2><i data-lucide="folder"></i> หมวดหมู่</h2>
     <div class="breadcrumb">หน้าหลัก / หมวดหมู่</div>
   </div>
-  <% if (currentUser && currentUser.role==='admin' ) { %>
+  <% if (currentUser && (currentUser.role==='admin' || currentUser.role==='superadmin')) { %>
     <a href="/categories/create" class="btn btn-primary"><i data-lucide="plus" style="width:14px;height:14px"></i>
       เพิ่มหมวดหมู่</a>
     <% } %>
@@ -19,14 +19,27 @@
       </div>
       <% } else { %>
         <div class="table-responsive">
+          <%
+            const getSortIcon = (field) => {
+              if (filters.sort === field) {
+                return filters.order === 'ASC' ? ' <i data-lucide="arrow-up" style="width:14px;height:14px;display:inline"></i>' : ' <i data-lucide="arrow-down" style="width:14px;height:14px;display:inline"></i>';
+              }
+              return ' <i data-lucide="chevrons-up-down" style="width:14px;height:14px;display:inline;opacity:0.3"></i>';
+            };
+            const getSortUrl = (field) => {
+              const newOrder = (filters.sort === field && filters.order === 'ASC') ? 'DESC' : 'ASC';
+              return '?sort=' + field + '&order=' + newOrder;
+            };
+          %>
           <table>
             <thead>
               <tr>
-                <th>รหัส SKU</th>
-                <th>ชื่อหมวดหมู่</th>
+                <th><a href="<%= getSortUrl('sku_prefix') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">รหัส SKU<%- getSortIcon('sku_prefix') %></a></th>
+                <th><a href="<%= getSortUrl('name') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">ชื่อหมวดหมู่<%- getSortIcon('name') %></a></th>
                 <th>คำอธิบาย</th>
-                <th>ทรัพย์สิน</th>
-                <% if (currentUser && currentUser.role==='admin' ) { %>
+                <th>หน่วยงาน</th>
+                <th><a href="<%= getSortUrl('assetCount') %>" style="color:inherit;text-decoration:none;display:flex;align-items:center;">ทรัพย์สิน<%- getSortIcon('assetCount') %></a></th>
+                <% if (currentUser && (currentUser.role==='admin' || currentUser.role==='superadmin')) { %>
                   <th>จัดการ</th>
                   <% } %>
               </tr>
@@ -43,10 +56,19 @@
                   <td>
                     <%= cat.description || '-' %>
                   </td>
-                  <td><span class="badge badge-info">
+                  <td>
+                    <% if (cat.department) { %>
+                      <span class="badge badge-info"><%= cat.department.name %></span>
+                    <% } else { %>
+                      <span style="color:var(--text-muted)">ทุกหน่วยงาน</span>
+                    <% } %>
+                  </td>
+                  <td><a href="/assets?category_id=<%= cat.id %>" style="text-decoration:none;">
+                    <span class="badge badge-info">
                       <%= cat.getDataValue('assetCount') || 0 %>
-                    </span> รายการ</td>
-                  <% if (currentUser && currentUser.role==='admin' ) { %>
+                    </span> รายการ
+                  </a></td>
+                  <% if (currentUser && (currentUser.role==='admin' || currentUser.role==='superadmin')) { %>
                     <td>
                       <div class="btn-group">
                         <a href="/categories/edit/<%= cat.id %>" class="btn btn-warning btn-xs"><i data-lucide="pencil"

@@ -27,6 +27,14 @@ const Category = sequelize.define('Category', {
   description: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  department_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'departments',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'categories'

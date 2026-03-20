@@ -4,7 +4,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
-const { Asset, Category } = require('../models');
+const { Asset, Category, Department } = require('../models');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { Op } = require('sequelize');
 
@@ -38,10 +38,15 @@ const upload = multer({
 });
 
 // GET /import — Main import page
-router.get('/', isAuthenticated, isAdmin, (req, res) => {
+router.get('/', isAuthenticated, isAdmin, async (req, res) => {
+    let departments = [];
+    if (req.session.user.role === 'superadmin') {
+        departments = await Department.findAll({ order: [['name', 'ASC']] });
+    }
     res.render('import/index', {
         title: 'นำเข้าข้อมูล',
-        results: null
+        results: null,
+        departments
     });
 });
 
@@ -166,6 +171,27 @@ router.post('/upload', isAuthenticated, isAdmin, (req, res, next) => {
     const results = { success: [], errors: [], total: 0 };
     const filePath = req.file.path;
 
+    // Determine department_id for imported assets
+    let importDeptId = null;
+    let importDeptCode = '';
+    if (req.session.user.role === 'superadmin') {
+      importDeptId = req.body.department_id || null;
+      if (importDeptId) {
+        const dept = await Department.findByPk(importDeptId);
+        if (dept && dept.code) {
+          importDeptCode = dept.code;
+        }
+      }
+    } else {
+      importDeptId = req.session.user.department_id;
+      if (importDeptId) {
+        const dept = await Department.findByPk(importDeptId);
+        if (dept && dept.code) {
+          importDeptCode = dept.code;
+        }
+      }
+    }
+
     try {
         // Read uploaded file
         const wb = XLSX.readFile(filePath);
@@ -228,17 +254,29 @@ router.post('/upload', isAuthenticated, isAdmin, (req, res, next) => {
 
                 // Auto-generate asset code if not provided
                 if (!assetCode && category) {
-                    const prefix = category.sku_prefix.toUpperCase();
-                    const lastAsset = await Asset.findOne({
-                        where: { asset_code: { [Op.like]: `${prefix}-%` } },
-                        order: [['asset_code', 'DESC']]
+                    const deptPart = importDeptCode ? importDeptCode + '-' : '';
+                    const prefix = deptPart + category.sku_prefix.toUpperCase();
+                    const existingAssets = await Asset.findAll({
+                        attributes: ['asset_code'],
+                        where: { asset_code: { [Op.like]: `${prefix}-%` } }
                     });
-                    let nextNum = 1;
-                    if (lastAsset) {
-                        const match = lastAsset.asset_code.match(/-(\d+)$/);
-                        if (match) nextNum = parseInt(match[1]) + 1;
-                    }
+                    let maxNum = 0;
+                    existingAssets.forEach(a => {
+                        const match = a.asset_code.match(/-(\d+)$/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            if (num > maxNum) maxNum = num;
+                        }
+                    });
+                    let nextNum = maxNum + 1;
                     assetCode = `${prefix}-${String(nextNum).padStart(4, '0')}`;
+                    // Ensure uniqueness
+                    let exists = await Asset.findOne({ where: { asset_code: assetCode } });
+                    while (exists) {
+                        nextNum++;
+                        assetCode = `${prefix}-${String(nextNum).padStart(4, '0')}`;
+                        exists = await Asset.findOne({ where: { asset_code: assetCode } });
+                    }
                 }
 
                 // Check for duplicate asset_code
@@ -254,12 +292,13 @@ router.post('/upload', isAuthenticated, isAdmin, (req, res, next) => {
                     }
                 }
 
-                // Create asset
+                // Create asset with department_id
                 await Asset.create({
                     asset_code: assetCode,
                     name,
                     description,
                     category_id: category.id,
+                    department_id: importDeptId,
                     type,
                     quantity: quantity || 0,
                     unit,
@@ -284,10 +323,15 @@ router.post('/upload', isAuthenticated, isAdmin, (req, res, next) => {
         // Clean up uploaded file
         try { fs.unlinkSync(filePath); } catch (e) { /* ignore */ }
 
-        // Render results
+        let departments = [];
+        if (req.session.user.role === 'superadmin') {
+            departments = await Department.findAll({ order: [['name', 'ASC']] });
+        }
+
         res.render('import/index', {
             title: 'นำเข้าข้อมูล',
-            results
+            results,
+            departments
         });
 
     } catch (error) {

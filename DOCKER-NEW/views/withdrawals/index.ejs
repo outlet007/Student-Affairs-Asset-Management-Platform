@@ -31,6 +31,14 @@
         <option value="<%= cat.id %>" <%= filterCategoryId == cat.id ? 'selected' : '' %>><%= cat.name %></option>
       <% }) %>
     </select>
+    <% if (typeof departments !== 'undefined' && departments.length > 0) { %>
+    <select class="form-control" name="department_id" style="max-width:200px" onchange="this.form.submit()">
+      <option value="">-- หน่วยงานทั้งหมด --</option>
+      <% departments.forEach(dept => { %>
+        <option value="<%= dept.id %>" <%= filterDepartmentId == dept.id ? 'selected' : '' %>><%= dept.name %></option>
+      <% }) %>
+    </select>
+    <% } %>
     <button type="submit" class="btn btn-outline btn-sm"><i data-lucide="search" style="width:14px;height:14px"></i> ค้นหา</button>
   </div>
 </form>
@@ -80,14 +88,14 @@
                 <td>
                   <% if (w.status === 'pending') { %>
                     <div class="btn-group">
-                      <% if (currentUser && currentUser.role === 'admin') { %>
+                      <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) { %>
                         <form action="/withdrawals/approve/<%= w.id %>" method="POST" style="display:inline">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                           <button type="submit" class="btn btn-success btn-xs"><i data-lucide="check-circle" style="width:16px;height:16px"></i> อนุมัติ</button>
                         </form>
                         <button type="button" class="btn btn-danger btn-xs btn-reject-withdrawal" data-id="<%= w.id %>"><i data-lucide="x-circle" style="width:16px;height:16px"></i> ปฏิเสธ</button>
                       <% } %>
-                      <% if (w.user_id === currentUser.id || currentUser.role === 'admin') { %>
+                      <% if (w.user_id === currentUser.id || currentUser.role === 'superadmin') { %>
                         <form action="/withdrawals/cancel/<%= w.id %>" method="POST" style="display:inline">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                           <button type="submit" class="btn btn-outline btn-xs" onclick="return confirm('ต้องการยกเลิกรายการนี้?')">🚫 ยกเลิก</button>
