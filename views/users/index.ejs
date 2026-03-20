@@ -1,0 +1,74 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="users"></i> จัดการผู้ใช้งาน</h2>
+    <div class="breadcrumb">หน้าหลัก / ผู้ใช้งาน</div>
+  </div>
+  <a href="/users/create" class="btn btn-primary"><i data-lucide="plus" style="width:14px;height:14px"></i> เพิ่มผู้ใช้งาน</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (users.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="user"></i></div>
+        <h4>ยังไม่มีผู้ใช้งาน</h4>
+        <p>เริ่มต้นด้วยการเพิ่มผู้ใช้งานใหม่</p>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ชื่อผู้ใช้</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>อีเมล</th>
+              <th>สิทธิ์</th>
+              <th>หน่วยงาน</th>
+              <th>วันที่สร้าง</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach((user, i) => { %>
+              <tr class="<%= user.deleted_at ? 'text-muted bg-light' : '' %>">
+                <td><%= i + 1 %></td>
+                <td>
+                  <strong><%= user.username %></strong>
+                  <% if (user.deleted_at) { %>
+                    <span class="badge badge-secondary ml-2">ถูกลบ</span>
+                  <% } %>
+                </td>
+                <td><%= user.full_name %></td>
+                <td><%= user.email || '-' %></td>
+                <td>
+                  <span class="badge <%= user.role === 'superadmin' ? 'badge-warning' : user.role === 'admin' ? 'badge-primary' : 'badge-info' %>">
+                    <%= user.role === 'superadmin' ? 'ผู้ดูแลระบบสูงสุด' : user.role === 'admin' ? 'ผู้ดูแลหน่วยงาน' : 'เจ้าหน้าที่' %>
+                  </span>
+                </td>
+                <td><%= user.department ? user.department.name : '-' %></td>
+                <td><%= user.createdAt ? new Date(user.createdAt).toLocaleString('th-TH', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %></td>
+                <td>
+                  <div class="btn-group">
+                    <% if (user.deleted_at) { %>
+                      <form action="/users/restore/<%= user.id %>" method="POST" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-success btn-xs" onclick="return confirm('ยืนยันรหัสการกู้คืนผู้ใช้ <%= user.full_name %> หรือไม่?')"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i> กู้คืน</button>
+                      </form>
+                    <% } else { %>
+                      <a href="/users/edit/<%= user.id %>" class="btn btn-warning btn-xs"><i data-lucide="pencil" style="width:14px;height:14px"></i> แก้ไข</a>
+                      <form action="/users/delete/<%= user.id %>" method="POST" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="button" class="btn btn-danger btn-xs btn-delete" data-name="<%= user.full_name %>"><i data-lucide="trash-2" style="width:14px;height:14px"></i> ลบ</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="building" style="width:14px;height:14px"></i> จัดการหน่วยงาน</h2>
+    <div class="breadcrumb">หน้าหลัก / หน่วยงาน</div>
+  </div>
+  <a href="/departments/create" class="btn btn-primary"><i data-lucide="plus" style="width:14px;height:14px"></i> เพิ่มหน่วยงาน</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (departments.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="building"></i></div>
+        <h4>ยังไม่มีหน่วยงาน</h4>
+        <p>เริ่มต้นด้วยการเพิ่มหน่วยงานใหม่</p>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>รหัสหน่วยงาน</th>
+              <th>ชื่อหน่วยงาน</th>
+              <th>รายละเอียด</th>
+              <th>ผู้ใช้งาน</th>
+              <th>ทรัพย์สิน</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% departments.forEach((dept, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><span class="badge badge-secondary"><%= dept.code || '-' %></span></td>
+                <td><strong><%= dept.name %></strong></td>
+                <td><%= dept.description || '-' %></td>
+                <td><span class="badge badge-info"><%= dept.dataValues.userCount || 0 %> คน</span></td>
+                <td><span class="badge badge-primary"><%= dept.dataValues.assetCount || 0 %> รายการ</span></td>
+                <td>
+                  <div class="btn-group">
+                    <a href="/departments/edit/<%= dept.id %>" class="btn btn-warning btn-xs"><i data-lucide="pencil" style="width:14px;height:14px"></i> แก้ไข</a>
+                    <form action="/departments/delete/<%= dept.id %>" method="POST" style="display:inline">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="button" class="btn btn-danger btn-xs btn-delete" data-name="<%= dept.name %>"><i data-lucide="trash-2" style="width:14px;height:14px"></i> ลบ</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,137 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="package-minus"></i> การเบิกใช้ทรัพย์สิน</h2>
+    <div class="breadcrumb">หน้าหลัก / เบิกใช้</div>
+  </div>
+  <a href="/withdrawals/create" class="btn btn-primary"><i data-lucide="plus" style="width:14px;height:14px"></i> เบิกใช้ทรัพย์สิน</a>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-tabs">
+    <a href="/withdrawals" class="filter-tab <%= !filterStatus ? 'active' : '' %>">ทั้งหมด</a>
+    <a href="/withdrawals?status=pending" class="filter-tab <%= filterStatus === 'pending' ? 'active' : '' %>">รออนุมัติ</a>
+    <a href="/withdrawals?status=approved" class="filter-tab <%= filterStatus === 'approved' ? 'active' : '' %>">อนุมัติแล้ว</a>
+    <a href="/withdrawals?status=rejected" class="filter-tab <%= filterStatus === 'rejected' ? 'active' : '' %>">ปฏิเสธ</a>
+    <a href="/withdrawals?status=cancelled" class="filter-tab <%= filterStatus === 'cancelled' ? 'active' : '' %>">ยกเลิก</a>
+  </div>
+</div>
+
+<!-- Search & Category Filter -->
+<form method="GET" action="/withdrawals">
+  <% if (filterStatus) { %>
+    <input type="hidden" name="status" value="<%= filterStatus %>">
+  <% } %>
+  <div class="filter-bar">
+    <div class="search-input">
+      <input type="text" name="search" value="<%= filterSearch %>" placeholder="ค้นหาชื่อทรัพย์สิน...">
+    </div>
+    <select class="form-control" name="category_id" style="max-width:200px" onchange="this.form.submit()">
+      <option value="">-- หมวดหมู่ทั้งหมด --</option>
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat.id %>" <%= filterCategoryId == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+      <% }) %>
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm"><i data-lucide="search" style="width:14px;height:14px"></i> ค้นหา</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <% if (withdrawals.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="package-minus"></i></div>
+        <h4>ไม่มีรายการเบิก</h4>
+        <p>ยังไม่มีรายการเบิกใช้ทรัพย์สิน</p>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ทรัพย์สิน</th>
+              <th>ผู้เบิก</th>
+              <th>จำนวน</th>
+              <th>วัตถุประสงค์</th>
+              <th>วันที่เบิก</th>
+              <th>สถานะ</th>
+              <th>ผู้อนุมัติ</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% withdrawals.forEach((w, i) => { %>
+              <tr>
+                <td><%= (pagination.currentPage - 1) * pagination.limit + i + 1 %></td>
+                <td><strong><%= w.asset ? w.asset.name : '-' %></strong></td>
+                <td><%= w.user ? w.user.full_name : '-' %></td>
+                <td><%= w.quantity %></td>
+                <td><%= w.purpose || '-' %></td>
+                <td><%= w.withdrawal_date ? new Date(w.withdrawal_date).toLocaleString('th-TH', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %></td>
+                <td>
+                  <span class="badge <%= w.status === 'approved' ? 'badge-success' : w.status === 'rejected' ? 'badge-danger' : w.status === 'cancelled' ? 'badge-info' : 'badge-warning' %>">
+                    <%= w.status === 'approved' ? 'อนุมัติ' : w.status === 'rejected' ? 'ปฏิเสธ' : w.status === 'cancelled' ? 'ยกเลิก' : 'รออนุมัติ' %>
+                  </span>
+                  <% if (w.status === 'rejected' && w.rejection_reason) { %>
+                    <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">เหตุผล: <%= w.rejection_reason %></div>
+                  <% } %>
+                </td>
+                <td><%= w.approver ? w.approver.full_name : '-' %></td>
+                <td>
+                  <% if (w.status === 'pending') { %>
+                    <div class="btn-group">
+                      <% if (currentUser && currentUser.role === 'admin') { %>
+                        <form action="/withdrawals/approve/<%= w.id %>" method="POST" style="display:inline">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                          <button type="submit" class="btn btn-success btn-xs"><i data-lucide="check-circle" style="width:16px;height:16px"></i> อนุมัติ</button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-xs btn-reject-withdrawal" data-id="<%= w.id %>"><i data-lucide="x-circle" style="width:16px;height:16px"></i> ปฏิเสธ</button>
+                      <% } %>
+                      <% if (w.user_id === currentUser.id || currentUser.role === 'admin') { %>
+                        <form action="/withdrawals/cancel/<%= w.id %>" method="POST" style="display:inline">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                          <button type="submit" class="btn btn-outline btn-xs" onclick="return confirm('ต้องการยกเลิกรายการนี้?')">🚫 ยกเลิก</button>
+                        </form>
+                      <% } %>
+                    </div>
+                  <% } else { %>
+                    <span style="color: var(--text-muted);">-</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <%- include('../partials/pagination', { pagination, buildQuery }) %>
+    <% } %>
+  </div>
+</div>
+
+<!-- Reject Withdrawal Modal -->
+<div class="modal-overlay" id="rejectWithdrawalModal">
+  <div class="modal-content">
+    <h3><i data-lucide="x-circle" style="width:16px;height:16px"></i> ปฏิเสธการเบิก</h3>
+    <form id="rejectWithdrawalForm" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-group">
+        <label class="form-label" for="withdrawal_rejection_reason">เหตุผลที่ปฏิเสธ</label>
+        <textarea class="form-control" id="withdrawal_rejection_reason" name="rejection_reason" placeholder="ระบุเหตุผล (ไม่บังคับ)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('rejectWithdrawalModal').classList.remove('active')">ยกเลิก</button>
+        <button type="submit" class="btn btn-danger">ยืนยันปฏิเสธ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.btn-reject-withdrawal').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    document.getElementById('rejectWithdrawalForm').action = '/withdrawals/reject/' + id;
+    document.getElementById('rejectWithdrawalModal').classList.add('active');
+  });
+});
+</script>

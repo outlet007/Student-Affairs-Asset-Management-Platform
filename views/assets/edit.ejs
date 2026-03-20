@@ -1,0 +1,155 @@
+<div class="page-header">
+  <div>
+    <h2><i data-lucide="pencil" style="width:14px;height:14px"></i> แก้ไขทรัพย์สิน</h2>
+    <div class="breadcrumb">หน้าหลัก / ทรัพย์สิน / แก้ไข</div>
+  </div>
+  <a href="/assets" class="btn btn-outline"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> กลับ</a>
+</div>
+<div class="card">
+  <div class="card-body">
+    <form action="/assets/edit/<%= asset.id %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (typeof departments !== 'undefined' && departments.length > 0) { %>
+      <div class="form-group">
+        <label class="form-label" for="department_id">หน่วยงาน *</label>
+        <select class="form-control" id="department_id" name="department_id">
+          <option value="">-- เลือกหน่วยงาน --</option>
+          <% departments.forEach(dept => { %>
+            <option value="<%= dept.id %>" <%= asset.department_id == dept.id ? 'selected' : '' %>><%= dept.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <% } %>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="category_id">หมวดหมู่ *</label>
+          <select class="form-control" id="category_id" name="category_id">
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat.id %>" data-prefix="<%= cat.sku_prefix || '' %>" <%= asset.category_id == cat.id ? 'selected' : '' %>>
+                <%= cat.name %> (<%= cat.sku_prefix || '-' %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="asset_code">รหัสทรัพย์สิน (สร้างอัตโนมัติ)</label>
+          <input type="text" class="form-control" id="asset_code" name="asset_code" value="<%= asset.asset_code %>" readonly
+            style="background:var(--bg-secondary)">
+          <small id="asset_code_info" style="display:block; margin-top:4px; font-size:11px;"></small>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="name">ชื่อทรัพย์สิน *</label>
+          <input type="text" class="form-control" id="name" name="name" value="<%= asset.name %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="type">ประเภท *</label>
+          <select class="form-control" id="type" name="type" required>
+            <option value="consumable" <%= asset.type === 'consumable' ? 'selected' : '' %>>ใช้แล้วหมดไป (Consumable)</option>
+            <option value="borrowable" <%= asset.type === 'borrowable' ? 'selected' : '' %>>ยืม-คืนได้ (Borrowable)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">คำอธิบาย</label>
+        <textarea class="form-control" id="description" name="description"><%= asset.description || '' %></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="quantity">จำนวน *</label>
+          <input type="number" class="form-control" id="quantity" name="quantity" value="<%= asset.quantity %>" required min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="unit">หน่วยนับ *</label>
+          <input type="text" class="form-control" id="unit" name="unit" value="<%= asset.unit %>" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="price_per_unit">ราคาต่อหน่วย (฿)</label>
+          <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" value="<%= asset.price_per_unit || 0 %>" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="min_quantity">จำนวนขั้นต่ำ (แจ้งเตือน)</label>
+          <input type="number" class="form-control" id="min_quantity" name="min_quantity" value="<%= asset.min_quantity || 0 %>" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="location">สถานที่จัดเก็บ</label>
+          <input type="text" class="form-control" id="location" name="location" value="<%= asset.location || '' %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="status">สถานะ</label>
+          <select class="form-control" id="status" name="status">
+            <option value="active" <%= asset.status === 'active' ? 'selected' : '' %>>ใช้งานได้</option>
+            <option value="damaged" <%= asset.status === 'damaged' ? 'selected' : '' %>>ชำรุด</option>
+            <option value="repairing" <%= asset.status === 'repairing' ? 'selected' : '' %>>ซ่อมแซม</option>
+            <option value="disposed" <%= asset.status === 'disposed' ? 'selected' : '' %>>จำหน่ายแล้ว</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Track initial values to detect changes
+  const initialCategoryId = '<%= asset.category_id || "" %>';
+  const initialDepartmentId = '<%= asset.department_id || "" %>';
+
+  function fetchAssetCode() {
+    const codeInput = document.getElementById('asset_code');
+    const codeInfo = document.getElementById('asset_code_info');
+    const categorySelect = document.getElementById('category_id');
+    const categoryId = categorySelect.value;
+
+    const departmentSelect = document.getElementById('department_id');
+    const departmentId = departmentSelect ? departmentSelect.value : '';
+
+    // If both category and department are still the same as original, keep the original code
+    if (categoryId === initialCategoryId && departmentId === initialDepartmentId) {
+      codeInput.value = '<%= asset.asset_code %>';
+      if (codeInfo) codeInfo.textContent = '';
+      return;
+    }
+
+    if (!categoryId) {
+      codeInput.value = '';
+      if (codeInfo) codeInfo.textContent = '';
+      return;
+    }
+
+    codeInput.value = 'กำลังสร้างรหัส...';
+    if (codeInfo) codeInfo.textContent = '';
+
+    let url = '/assets/api/next-code/' + categoryId;
+    if (departmentId) {
+      url += '/' + departmentId;
+    }
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        codeInput.value = data.code || '';
+        if (codeInfo && data.code) {
+          codeInfo.textContent = 'มีทรัพย์สินในหมวดนี้แล้ว ' + data.existingCount + ' รายการ (รหัสถัดไป: ' + data.code + ')';
+          codeInfo.style.color = 'var(--text-muted)';
+        }
+      })
+      .catch(e => {
+        codeInput.value = '';
+        if (codeInfo) codeInfo.textContent = 'ไม่สามารถสร้างรหัสอัตโนมัติได้';
+      });
+  }
+
+  document.getElementById('category_id').addEventListener('change', fetchAssetCode);
+  const deptSelect = document.getElementById('department_id');
+  if (deptSelect) {
+    deptSelect.addEventListener('change', fetchAssetCode);
+  }
+</script>

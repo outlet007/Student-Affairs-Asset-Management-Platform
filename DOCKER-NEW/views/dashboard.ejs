@@ -1,0 +1,344 @@
+<!-- Dashboard -->
+<div class="stats-grid">
+  <a href="/assets" class="stat-card-link">
+    <div class="stat-card primary">
+      <div class="stat-icon primary"><i data-lucide="package"></i></div>
+      <div class="stat-info">
+        <h4>ทรัพย์สินทั้งหมด</h4>
+        <div class="stat-value">
+          <%= totalAssets %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/assets?type=consumable" class="stat-card-link">
+    <div class="stat-card success">
+      <div class="stat-icon success"><i data-lucide="wrench"></i></div>
+      <div class="stat-info">
+        <h4>ใช้แล้วหมดไป</h4>
+        <div class="stat-value">
+          <%= totalConsumable %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/assets?type=borrowable" class="stat-card-link">
+    <div class="stat-card info">
+      <div class="stat-icon info"><i data-lucide="repeat"></i></div>
+      <div class="stat-info">
+        <h4>ยืม-คืนได้</h4>
+        <div class="stat-value">
+          <%= totalBorrowable %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/borrows?status=borrowed" class="stat-card-link">
+    <div class="stat-card warning">
+      <div class="stat-icon warning"><i data-lucide="clipboard-list"></i></div>
+      <div class="stat-info">
+        <h4>กำลังยืมอยู่</h4>
+        <div class="stat-value">
+          <%= activeBorrows %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/borrows?status=overdue" class="stat-card-link">
+    <div class="stat-card danger">
+      <div class="stat-icon danger"><i data-lucide="circle-alert"></i></div>
+      <div class="stat-info">
+        <h4>เกินกำหนดคืน</h4>
+        <div class="stat-value">
+          <%= overdueBorrows %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/borrows?status=pending" class="stat-card-link">
+    <div class="stat-card purple">
+      <div class="stat-icon purple"><i data-lucide="hourglass"></i></div>
+      <div class="stat-info">
+        <h4>รออนุมัติยืม</h4>
+        <div class="stat-value">
+          <%= pendingBorrows %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/withdrawals?status=pending" class="stat-card-link">
+    <div class="stat-card purple">
+      <div class="stat-icon purple"><i data-lucide="hourglass"></i></div>
+      <div class="stat-info">
+        <h4>รออนุมัติเบิก</h4>
+        <div class="stat-value">
+          <%= pendingWithdrawals %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/assets" class="stat-card-link">
+    <div class="stat-card danger">
+      <div class="stat-icon danger"><i data-lucide="triangle-alert"></i></div>
+      <div class="stat-info">
+        <h4>สินค้าใกล้หมด</h4>
+        <div class="stat-value">
+          <%= lowStockAssets %>
+        </div>
+      </div>
+    </div>
+  </a>
+  <a href="/users" class="stat-card-link">
+    <div class="stat-card info">
+      <div class="stat-icon info"><i data-lucide="users"></i></div>
+      <div class="stat-info">
+        <h4>ผู้ใช้งาน</h4>
+        <div class="stat-value">
+          <%= totalUsers %>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+  <div class="card">
+    <div class="card-header">
+      <h3><i data-lucide="bar-chart-3"></i> ทรัพย์สินตามหมวดหมู่</h3>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h3><i data-lucide="trending-up"></i> แนวโน้มการเบิกใช้ (6 เดือนย้อนหลัง)</h3>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity & Low Stock -->
+<div class="charts-grid">
+  <div class="card">
+    <div class="card-header">
+      <h3><i data-lucide="package-minus"></i> รายการเบิกล่าสุด</h3>
+      <a href="/withdrawals" class="btn btn-outline btn-xs">ดูทั้งหมด</a>
+    </div>
+    <div class="card-body">
+      <% if (recentWithdrawals.length===0) { %>
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="inbox"></i></div>
+          <p>ยังไม่มีรายการเบิก</p>
+        </div>
+        <% } else { %>
+          <ul class="activity-list">
+            <% recentWithdrawals.forEach(w=> { %>
+              <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(99,102,241,0.1); color: #818cf8;"><i
+                    data-lucide="package-minus"></i></div>
+                 <div class="activity-text">
+                   <strong>
+                     <%= w.user ? w.user.full_name : '(ไม่พบข้อมูล)' %>
+                   </strong>
+                   <% if (w.user) { %>
+                     <span style="font-size:10px; padding:1px 6px; border-radius:999px; margin-left:4px;
+                       background: <%= w.user.role === 'admin' ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)' %>;
+                       color: <%= w.user.role === 'admin' ? '#f87171' : '#60a5fa' %>;"><%=
+                       w.user.role === 'admin' ? 'แอดมิน' : 'เจ้าหน้าที่' %></span>
+                   <% } %>
+                   เบิก <strong><%= w.asset ? w.asset.name : '-' %></strong> จำนวน <%= w.quantity %>
+                   <br><small>
+                     <%= w.createdAt ? new Date(w.createdAt).toLocaleString('th-TH',
+                       {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
+                   </small>
+                 </div>
+                <span
+                  class="badge <%= w.status === 'approved' ? 'badge-success' : w.status === 'rejected' ? 'badge-danger' : 'badge-warning' %>">
+                  <%= w.status==='approved' ? 'อนุมัติ' : w.status==='rejected' ? 'ปฏิเสธ' : 'รออนุมัติ' %>
+                </span>
+              </li>
+              <% }) %>
+          </ul>
+          <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3><i data-lucide="repeat"></i> รายการยืมล่าสุด</h3>
+      <a href="/borrows" class="btn btn-outline btn-xs">ดูทั้งหมด</a>
+    </div>
+    <div class="card-body">
+      <% if (recentBorrows.length===0) { %>
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="inbox"></i></div>
+          <p>ยังไม่มีรายการยืม</p>
+        </div>
+        <% } else { %>
+          <ul class="activity-list">
+            <% recentBorrows.forEach(b=> { %>
+              <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(59,130,246,0.1); color: #60a5fa;"><i
+                    data-lucide="repeat"></i></div>
+                 <div class="activity-text">
+                   <strong>
+                     <%= b.user ? b.user.full_name : '(ไม่พบข้อมูล)' %>
+                   </strong>
+                   <% if (b.user) { %>
+                     <span style="font-size:10px; padding:1px 6px; border-radius:999px; margin-left:4px;
+                       background: <%= b.user.role === 'admin' ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)' %>;
+                       color: <%= b.user.role === 'admin' ? '#f87171' : '#60a5fa' %>;"><%=
+                       b.user.role === 'admin' ? 'แอดมิน' : 'เจ้าหน้าที่' %></span>
+                   <% } %>
+                   ยืม <strong><%= b.asset ? b.asset.name : '-' %></strong> จำนวน <%= b.quantity %>
+                   <br><small>
+                     <%= b.createdAt ? new Date(b.createdAt).toLocaleString('th-TH',
+                       {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-' %>
+                   </small>
+                 </div>
+                <span
+                  class="badge <%= b.status === 'returned' ? 'badge-success' : b.status === 'overdue' ? 'badge-danger' : 'badge-info' %>">
+                  <%= b.status==='returned' ? 'คืนแล้ว' : b.status==='overdue' ? 'เกินกำหนด' : 'กำลังยืม' %>
+                </span>
+              </li>
+              <% }) %>
+          </ul>
+          <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Low Stock -->
+<% if (lowStockItems.length> 0) { %>
+  <div class="card mt-2">
+    <div class="card-header">
+      <h3><i data-lucide="triangle-alert"></i> ทรัพย์สินใกล้หมด</h3>
+      <a href="/assets" class="btn btn-outline btn-xs">ดูทั้งหมด</a>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อ</th>
+              <th>หมวดหมู่</th>
+              <th>คงเหลือ</th>
+              <th>ขั้นต่ำ</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lowStockItems.forEach(item=> { %>
+              <tr>
+                <td><strong>
+                    <%= item.name %>
+                  </strong></td>
+                <td>
+                  <%= item.category ? item.category.name : '-' %>
+                </td>
+                <td>
+                  <%= item.quantity %>
+                    <%= item.unit %>
+                </td>
+                <td>
+                  <%= item.min_quantity %>
+                    <%= item.unit %>
+                </td>
+                <td>
+                  <% if (item.quantity===0) { %>
+                    <span class="badge badge-danger">หมด</span>
+                    <% } else { %>
+                      <span class="badge badge-warning">ใกล้หมด</span>
+                      <% } %>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+      // Category Bar Chart
+      var catData = <%- JSON.stringify(assetsByCategory) %>;
+      var catLabels = catData.map(function (c) { return c.category ? c.category.name : 'ไม่มีหมวดหมู่'; });
+      var catValues = catData.map(function (c) { return parseInt(c.total_qty) || 0; });
+
+      if (document.getElementById('categoryChart')) {
+        new Chart(document.getElementById('categoryChart'), {
+          type: 'bar',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              label: 'จำนวนรวม',
+              data: catValues,
+              backgroundColor: [
+                'rgba(99, 102, 241, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(34, 197, 94, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(239, 68, 68, 0.7)'
+              ],
+              borderRadius: 6,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+              x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+            }
+          }
+        });
+      }
+
+      // Trend Line Chart
+      var trendData = <%- JSON.stringify(monthlyWithdrawals) %>;
+      var monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      var trendLabels = trendData.map(function (t) { return monthNames[parseInt(t.month) - 1] + ' ' + t.year; });
+      var trendValues = trendData.map(function (t) { return parseInt(t.count); });
+
+      if (document.getElementById('trendChart')) {
+        new Chart(document.getElementById('trendChart'), {
+          type: 'line',
+          data: {
+            labels: trendLabels.length ? trendLabels : ['ไม่มีข้อมูล'],
+            datasets: [{
+              label: 'จำนวนเบิก',
+              data: trendValues.length ? trendValues : [0],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#818cf8',
+              pointRadius: 5,
+              pointHoverRadius: 7
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+              x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+            }
+          }
+        });
+      }
+    </script>

@@ -1,0 +1,302 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <h2><i data-lucide="file-up" style="width:24px;height:24px"></i> นำเข้าข้อมูลทรัพย์สิน</h2>
+        <p class="page-subtitle">ดาวน์โหลด Template และนำเข้าข้อมูลทรัพย์สินจากไฟล์ Excel</p>
+    </div>
+</div>
+
+<!-- Step Indicators -->
+<div class="import-steps">
+    <div class="import-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+            <h4>ดาวน์โหลด Template</h4>
+            <p>ดาวน์โหลดไฟล์ Excel ที่มีรูปแบบสำหรับกรอกข้อมูล</p>
+        </div>
+    </div>
+    <div class="step-arrow"><i data-lucide="chevron-right"></i></div>
+    <div class="import-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+            <h4>กรอกข้อมูล</h4>
+            <p>เปิดไฟล์และกรอกข้อมูลทรัพย์สินตามรูปแบบที่กำหนด</p>
+        </div>
+    </div>
+    <div class="step-arrow"><i data-lucide="chevron-right"></i></div>
+    <div class="import-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+            <h4>อัปโหลดและนำเข้า</h4>
+            <p>อัปโหลดไฟล์ที่กรอกเสร็จแล้วเข้าสู่ระบบ</p>
+        </div>
+    </div>
+</div>
+
+<div class="import-sections">
+    <!-- Section 1: Download Template -->
+    <div class="card import-card">
+        <div class="card-header">
+            <h3><i data-lucide="download" style="width:20px;height:20px"></i> ขั้นตอนที่ 1: ดาวน์โหลด Template</h3>
+        </div>
+        <div class="card-body">
+            <p class="import-description">
+                ดาวน์โหลดไฟล์ Template สำหรับกรอกข้อมูลทรัพย์สิน ไฟล์จะมี 3 Sheet:
+            </p>
+            <ul class="template-info-list">
+                <li><i data-lucide="table" style="width:16px;height:16px"></i> <strong>Sheet 1 -
+                        ข้อมูลทรัพย์สิน:</strong> กรอกข้อมูลทรัพย์สินที่ต้องการนำเข้า</li>
+                <li><i data-lucide="book-open" style="width:16px;height:16px"></i> <strong>Sheet 2 - คู่มือ:</strong>
+                    คำอธิบายรายละเอียดแต่ละคอลัมน์</li>
+                <li><i data-lucide="folder" style="width:16px;height:16px"></i> <strong>Sheet 3 -
+                        หมวดหมู่ในระบบ:</strong> รายชื่อหมวดหมู่ที่ใช้งานได้</li>
+            </ul>
+
+            <div class="template-columns-preview">
+                <h4>คอลัมน์ที่ต้องกรอก:</h4>
+                <div class="columns-grid">
+                    <div class="column-item required">
+                        <span class="column-name">ชื่อทรัพย์สิน</span>
+                        <span class="column-badge required">จำเป็น</span>
+                    </div>
+                    <div class="column-item required">
+                        <span class="column-name">หมวดหมู่</span>
+                        <span class="column-badge required">จำเป็น</span>
+                    </div>
+                    <div class="column-item required">
+                        <span class="column-name">ประเภท</span>
+                        <span class="column-badge required">จำเป็น</span>
+                    </div>
+                    <div class="column-item required">
+                        <span class="column-name">จำนวน</span>
+                        <span class="column-badge required">จำเป็น</span>
+                    </div>
+                    <div class="column-item required">
+                        <span class="column-name">หน่วย</span>
+                        <span class="column-badge required">จำเป็น</span>
+                    </div>
+
+                    <div class="column-item">
+                        <span class="column-name">รายละเอียด</span>
+                        <span class="column-badge optional">ไม่จำเป็น</span>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">ราคาต่อหน่วย</span>
+                        <span class="column-badge optional">ไม่จำเป็น</span>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">สถานที่เก็บ</span>
+                        <span class="column-badge optional">ไม่จำเป็น</span>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">จำนวนขั้นต่ำ</span>
+                        <span class="column-badge optional">ไม่จำเป็น</span>
+                    </div>
+                </div>
+            </div>
+
+            <a href="/import/template" class="btn btn-primary btn-lg">
+                <i data-lucide="download" style="width:18px;height:18px"></i> ดาวน์โหลด Template Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Section 2: Upload File -->
+    <div class="card import-card">
+        <div class="card-header">
+            <h3><i data-lucide="upload" style="width:20px;height:20px"></i> ขั้นตอนที่ 2-3: อัปโหลดและนำเข้าข้อมูล</h3>
+        </div>
+        <div class="card-body">
+            <form action="/import/upload?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data"
+                id="import-form">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <i data-lucide="upload-cloud" style="width:48px;height:48px"></i>
+                    </div>
+                    <p class="upload-text">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
+                    <p class="upload-hint">รองรับไฟล์ .xlsx, .xls (ขนาดสูงสุด 5MB)</p>
+                    <input type="file" name="file" id="file-input" accept=".xlsx,.xls" class="file-input-hidden">
+                </div>
+
+                <div class="selected-file" id="selected-file" style="display:none;">
+                    <div class="file-info">
+                        <i data-lucide="file-spreadsheet" style="width:24px;height:24px"></i>
+                        <span id="file-name"></span>
+                        <button type="button" class="btn-remove-file" id="remove-file">
+                            <i data-lucide="x" style="width:16px;height:16px"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg" id="import-btn" disabled>
+                    <i data-lucide="database" style="width:18px;height:18px"></i> นำเข้าข้อมูล
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section 3: Import Results -->
+    <% if (results) { %>
+        <div class="card import-card import-results-card">
+            <div class="card-header">
+                <h3><i data-lucide="clipboard-list" style="width:20px;height:20px"></i> ผลลัพธ์การนำเข้า</h3>
+            </div>
+            <div class="card-body">
+                <div class="results-summary">
+                    <div class="result-stat result-total">
+                        <div class="result-stat-number">
+                            <%= results.total %>
+                        </div>
+                        <div class="result-stat-label">ทั้งหมด</div>
+                    </div>
+                    <div class="result-stat result-success">
+                        <div class="result-stat-number">
+                            <%= results.success.length %>
+                        </div>
+                        <div class="result-stat-label">สำเร็จ</div>
+                    </div>
+                    <div class="result-stat result-error">
+                        <div class="result-stat-number">
+                            <%= results.errors.length %>
+                        </div>
+                        <div class="result-stat-label">ล้มเหลว</div>
+                    </div>
+                </div>
+
+                <% if (results.success.length> 0) { %>
+                    <div class="results-section results-success-section">
+                        <h4><i data-lucide="check-circle" style="width:18px;height:18px"></i> รายการที่นำเข้าสำเร็จ (<%=
+                                results.success.length %>)</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>แถว</th>
+                                        <th>ชื่อทรัพย์สิน</th>
+                                        <th>รหัสทรัพย์สิน</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% results.success.forEach(item=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= item.row %>
+                                            </td>
+                                            <td>
+                                                <%= item.name %>
+                                            </td>
+                                            <td><code><%= item.assetCode %></code></td>
+                                        </tr>
+                                        <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <% if (results.errors.length> 0) { %>
+                            <div class="results-section results-error-section">
+                                <h4><i data-lucide="alert-circle" style="width:18px;height:18px"></i> รายการที่ล้มเหลว (
+                                    <%= results.errors.length %>)</h4>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>แถว</th>
+                                                <th>ชื่อ</th>
+                                                <th>สาเหตุ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% results.errors.forEach(item=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <%= item.row %>
+                                                    </td>
+                                                    <td>
+                                                        <%= item.name %>
+                                                    </td>
+                                                    <td>
+                                                        <ul class="error-list">
+                                                            <% item.errors.forEach(err=> { %>
+                                                                <li>
+                                                                    <%= err %>
+                                                                </li>
+                                                                <% }) %>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <div class="results-actions">
+                                    <a href="/import" class="btn btn-primary">
+                                        <i data-lucide="upload" style="width:16px;height:16px"></i> นำเข้าเพิ่มเติม
+                                    </a>
+                                    <a href="/assets" class="btn btn-outline">
+                                        <i data-lucide="tag" style="width:16px;height:16px"></i> ดูรายการทรัพย์สิน
+                                    </a>
+                                </div>
+            </div>
+        </div>
+        <% } %>
+</div>
+
+<script>
+    // Drag and drop upload
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const selectedFile = document.getElementById('selected-file');
+    const fileName = document.getElementById('file-name');
+    const removeFile = document.getElementById('remove-file');
+    const importBtn = document.getElementById('import-btn');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileName.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            selectedFile.style.display = 'flex';
+            uploadArea.style.display = 'none';
+            importBtn.disabled = false;
+        }
+    }
+
+    removeFile.addEventListener('click', () => {
+        fileInput.value = '';
+        selectedFile.style.display = 'none';
+        uploadArea.style.display = 'flex';
+        importBtn.disabled = true;
+    });
+
+    // Loading state on submit
+    document.getElementById('import-form').addEventListener('submit', function () {
+        importBtn.disabled = true;
+        importBtn.innerHTML = '<i data-lucide="loader" style="width:18px;height:18px" class="spin"></i> กำลังนำเข้าข้อมูล...';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>

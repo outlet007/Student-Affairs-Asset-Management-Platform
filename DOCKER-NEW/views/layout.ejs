@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');</script>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ระบบจัดการทรัพย์สินฝ่ายกิจการนักศึกษา">
+  <title>
+    <%= title %> | ระบบจัดการทรัพย์สิน
+  </title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon"><i data-lucide="package"></i></div>
+          <h2>ระบบจัดการทรัพย์สิน <small>ฝ่ายกิจการนักศึกษา</small></h2>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">เมนูหลัก</div>
+          <a href="/dashboard" class="nav-link <%= currentPath === '/dashboard' ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> แดชบอร์ด
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">จัดการข้อมูล</div>
+          <a href="/assets" class="nav-link <%= currentPath.startsWith('/assets') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="tag"></i></span> ทรัพย์สิน
+          </a>
+          <a href="/categories" class="nav-link <%= currentPath.startsWith('/categories') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="folder"></i></span> หมวดหมู่
+          </a>
+          <a href="/import" class="nav-link <%= currentPath.startsWith('/import') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="file-up"></i></span> นำเข้าข้อมูล
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">รายการ</div>
+          <a href="/withdrawals" class="nav-link <%= currentPath.startsWith('/withdrawals') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="package-minus"></i></span> เบิกใช้
+            <% if (typeof pendingWithdrawalCount !=='undefined' && pendingWithdrawalCount> 0) { %>
+              <span class="badge">
+                <%= pendingWithdrawalCount %>
+              </span>
+              <% } %>
+          </a>
+          <a href="/borrows" class="nav-link <%= currentPath.startsWith('/borrows') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="repeat"></i></span> ยืม-คืน
+            <% const borrowBadge=(typeof pendingBorrowCount !=='undefined' ? pendingBorrowCount : 0) + (typeof
+              overdueBorrowCount !=='undefined' ? overdueBorrowCount : 0); %>
+              <% if (borrowBadge> 0) { %>
+                <span class="badge">
+                  <%= borrowBadge %>
+                </span>
+                <% } %>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">รายงาน</div>
+          <a href="/reports" class="nav-link <%= currentPath.startsWith('/reports') ? 'active' : '' %>">
+            <span class="nav-icon"><i data-lucide="file-bar-chart"></i></span> รายงาน
+          </a>
+        </div>
+
+        <% if (currentUser && currentUser.role==='admin' ) { %>
+          <div class="nav-section">
+            <div class="nav-section-title">ผู้ดูแลระบบ</div>
+            <a href="/users" class="nav-link <%= currentPath.startsWith('/users') ? 'active' : '' %>">
+              <span class="nav-icon"><i data-lucide="users"></i></span> ผู้ใช้งาน
+            </a>
+          </div>
+          <% } %>
+      </nav>
+
+      <% if (currentUser) { %>
+        <div class="sidebar-footer">
+          <a href="/profile" class="user-info-link">
+            <div class="user-info">
+              <div class="user-avatar">
+                <%= currentUser.full_name ? currentUser.full_name.charAt(0) : 'U' %>
+              </div>
+              <div class="user-details">
+                <div class="user-name">
+                  <%= currentUser.full_name %>
+                </div>
+                <div class="user-role">
+                  <%= currentUser.role==='admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่' %>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <% } %>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-sidebar-toggle" id="sidebar-toggle"><i data-lucide="menu"></i></button>
+          <h1>
+            <%= title %>
+          </h1>
+        </div>
+        <div class="topbar-right">
+          <button class="theme-toggle" id="theme-toggle" title="สลับ Light/Dark Mode"><i data-lucide="moon"
+              id="theme-icon"></i></button>
+          <% if (currentUser) { %>
+            <a href="/profile" class="btn btn-outline btn-sm"><i data-lucide="user" style="width:14px;height:14px"></i>
+              โปรไฟล์</a>
+            <a href="/logout" class="btn btn-outline btn-sm"><i data-lucide="log-out"
+                style="width:14px;height:14px"></i> ออกจากระบบ</a>
+            <% } %>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <% if (success_msg && success_msg.length> 0) { %>
+          <% success_msg.forEach(msg=> { %>
+            <div class="alert alert-success"><i data-lucide="check-circle" style="width:16px;height:16px"></i>
+              <%= msg %>
+            </div>
+            <% }) %>
+              <% } %>
+                <% if (error_msg && error_msg.length> 0) { %>
+                  <% error_msg.forEach(msg=> { %>
+                    <div class="alert alert-error"><i data-lucide="alert-circle" style="width:16px;height:16px"></i>
+                      <%= msg %>
+                    </div>
+                    <% }) %>
+                      <% } %>
+
+                        <%- body %>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>
