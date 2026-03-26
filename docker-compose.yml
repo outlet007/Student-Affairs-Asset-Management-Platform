@@ -4,7 +4,7 @@ services:
   # ---- MySQL Database ----
   db:
     image: mysql:8.0
-    container_name: asset-mgmt-db
+    container_name: saams.bu.ac.th_db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-kR3yL7bN5gW2mC6}
@@ -18,7 +18,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - asset-network
+      - saams-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 10s
@@ -33,7 +33,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: asset-mgmt-app
+    container_name: saams.bu.ac.th_app
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -49,7 +49,7 @@ services:
     volumes:
       - app_uploads:/app/uploads
     networks:
-      - asset-network
+      - saams-network
     depends_on:
       db:
         condition: service_healthy
@@ -61,5 +61,5 @@ volumes:
     driver: local
 
 networks:
-  asset-network:
+  saams-network:
     driver: bridge
